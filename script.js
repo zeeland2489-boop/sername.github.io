@@ -70,12 +70,11 @@ document.getElementById('loginForm')?.addEventListener('submit', function(e) {
   const password = document.getElementById('loginPassword').value;
   const errorDiv = document.getElementById('loginError');
   
-  // Get users from localStorage
   const users = JSON.parse(localStorage.getItem('users') || '[]');
   const user = users.find(u => u.email === email && u.password === password);
   
   if (user) {
-    localStorage.setItem('currentUser', JSON.stringify({ name: user.name, email: user.email }));
+    localStorage.setItem('currentUser', JSON.stringify({ name: user.name, email: user.email, joinDate: user.joinDate }));
     updateAuthUI();
     closeLoginModal();
     document.getElementById('loginForm').reset();
@@ -115,9 +114,10 @@ document.getElementById('registerForm')?.addEventListener('submit', function(e) 
     return;
   }
   
-  users.push({ name, email, password });
+  const joinDate = new Date().toLocaleDateString();
+  users.push({ name, email, password, joinDate, favorites: [], settings: { emailNotif: true, chatNotif: true } });
   localStorage.setItem('users', JSON.stringify(users));
-  localStorage.setItem('currentUser', JSON.stringify({ name, email }));
+  localStorage.setItem('currentUser', JSON.stringify({ name, email, joinDate }));
   
   updateAuthUI();
   closeRegisterModal();
@@ -126,12 +126,199 @@ document.getElementById('registerForm')?.addEventListener('submit', function(e) 
 
 // Logout Function
 function logout() {
-  localStorage.removeItem('currentUser');
-  updateAuthUI();
+  if(confirm('Are you sure you want to logout?')) {
+    localStorage.removeItem('currentUser');
+    updateAuthUI();
+    closeDashboard();
+    closeSettings();
+  }
 }
 
 // Initialize
 updateAuthUI();
+
+// Dashboard Functions
+function showDashboard() {
+  const user = getCurrentUser();
+  if (!user) return;
+  
+  document.getElementById('dashboard').classList.remove('hidden');
+  
+  const users = JSON.parse(localStorage.getItem('users') || '[]');
+  const userData = users.find(u => u.email === user.email);
+  
+  document.getElementById('profileInfo').innerHTML = `
+    <p><strong>Name:</strong> ${user.name}</p>
+    <p><strong>Email:</strong> ${user.email}</p>
+  `;
+  
+  document.getElementById('memberSince').textContent = user.joinDate || 'N/A';
+  
+  displayFavorites();
+}
+
+function closeDashboard() {
+  document.getElementById('dashboard').classList.add('hidden');
+}
+
+function displayFavorites() {
+  const user = getCurrentUser();
+  const users = JSON.parse(localStorage.getItem('users') || '[]');
+  const userData = users.find(u => u.email === user.email);
+  
+  const favList = document.getElementById('favoritesList');
+  if (userData.favorites && userData.favorites.length > 0) {
+    favList.innerHTML = userData.favorites.map((fav, idx) => `
+      <div class="favorite-item">
+        <span>⭐ ${fav}</span>
+        <button onclick="removeFavorite(${idx})">Remove</button>
+      </div>
+    `).join('');
+  } else {
+    favList.innerHTML = '<p style="color: #999;">No favorites yet</p>';
+  }
+}
+
+function addFavorite() {
+  const input = document.getElementById('favInput');
+  const fav = input.value.trim();
+  
+  if (!fav) return;
+  
+  const user = getCurrentUser();
+  const users = JSON.parse(localStorage.getItem('users') || '[]');
+  const userData = users.find(u => u.email === user.email);
+  
+  if (!userData.favorites) userData.favorites = [];
+  userData.favorites.push(fav);
+  
+  localStorage.setItem('users', JSON.stringify(users));
+  input.value = '';
+  displayFavorites();
+}
+
+function removeFavorite(idx) {
+  const user = getCurrentUser();
+  const users = JSON.parse(localStorage.getItem('users') || '[]');
+  const userData = users.find(u => u.email === user.email);
+  
+  userData.favorites.splice(idx, 1);
+  localStorage.setItem('users', JSON.stringify(users));
+  displayFavorites();
+}
+
+function deleteAccount() {
+  if(confirm('Are you sure? This cannot be undone!')) {
+    const user = getCurrentUser();
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const idx = users.findIndex(u => u.email === user.email);
+    
+    users.splice(idx, 1);
+    localStorage.setItem('users', JSON.stringify(users));
+    localStorage.removeItem('currentUser');
+    
+    updateAuthUI();
+    closeDashboard();
+    alert('Account deleted successfully');
+  }
+}
+
+// Settings Functions
+function showSettings() {
+  const user = getCurrentUser();
+  if (!user) return;
+  
+  document.getElementById('settings').classList.remove('hidden');
+  loadSettings();
+}
+
+function closeSettings() {
+  document.getElementById('settings').classList.add('hidden');
+}
+
+function loadSettings() {
+  const user = getCurrentUser();
+  const users = JSON.parse(localStorage.getItem('users') || '[]');
+  const userData = users.find(u => u.email === user.email);
+  
+  if (userData.settings) {
+    document.getElementById('emailNotif').checked = userData.settings.emailNotif;
+    document.getElementById('chatNotif').checked = userData.settings.chatNotif;
+  }
+}
+
+function saveSettings() {
+  const user = getCurrentUser();
+  const users = JSON.parse(localStorage.getItem('users') || '[]');
+  const userData = users.find(u => u.email === user.email);
+  
+  userData.settings = {
+    emailNotif: document.getElementById('emailNotif').checked,
+    chatNotif: document.getElementById('chatNotif').checked
+  };
+  
+  localStorage.setItem('users', JSON.stringify(users));
+  alert('Settings saved successfully!');
+}
+
+document.getElementById('changePasswordForm')?.addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const current = document.getElementById('currentPassword').value;
+  const newPass = document.getElementById('newPassword').value;
+  const confirm = document.getElementById('confirmNewPassword').value;
+  const errorDiv = document.getElementById('passwordError');
+  
+  const user = getCurrentUser();
+  const users = JSON.parse(localStorage.getItem('users') || '[]');
+  const userData = users.find(u => u.email === user.email);
+  
+  if (userData.password !== current) {
+    errorDiv.textContent = 'Current password is incorrect';
+    errorDiv.classList.add('show');
+    return;
+  }
+  
+  if (newPass !== confirm) {
+    errorDiv.textContent = 'New passwords do not match';
+    errorDiv.classList.add('show');
+    return;
+  }
+  
+  userData.password = newPass;
+  localStorage.setItem('users', JSON.stringify(users));
+  errorDiv.classList.remove('show');
+  alert('Password changed successfully!');
+  document.getElementById('changePasswordForm').reset();
+});
+
+// Members List
+function toggleMembersList() {
+  const membersList = document.getElementById('membersList');
+  membersList.classList.toggle('hidden');
+  
+  if (!membersList.classList.contains('hidden')) {
+    displayMembers();
+  }
+}
+
+function displayMembers() {
+  const users = JSON.parse(localStorage.getItem('users') || '[]');
+  const container = document.getElementById('membersContainer');
+  
+  if (users.length === 0) {
+    container.innerHTML = '<p style="text-align: center; color: #999;">No members yet</p>';
+    return;
+  }
+  
+  container.innerHTML = users.map(u => `
+    <div class="member-item">
+      <h4>👤 ${u.name}</h4>
+      <p>📧 ${u.email}</p>
+      <p>📅 Joined: ${u.joinDate}</p>
+    </div>
+  `).join('');
+}
 
 // Chat Functions
 function toggleChat() {

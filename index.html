@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome App 📑</title>
+    <title>ยินดีต้อนรับ📑</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -17,13 +17,15 @@
           </div>
           <div class="user-menu" id="userMenu" style="display:none;">
             <span id="userName"></span>
+            <button onclick="showDashboard()" class="btn btn-outline">📊 Dashboard</button>
+            <button onclick="showSettings()" class="btn btn-outline">⚙️ Settings</button>
             <button onclick="logout()" class="btn btn-outline">Logout</button>
           </div>
         </div>
         <p id="currentTime" class="time-display"></p>
       </header>
 
-      <main>
+      <main id="mainContent">
         <section class="content-section">
           <h2>Get in Touch</h2>
           <form action="https://formspree.io/f/mrewlnqn" method="POST" class="contact-form">
@@ -68,7 +70,79 @@
             </div>
           </div>
         </section>
+
+        <section class="members-section">
+          <h2>Members</h2>
+          <button onclick="toggleMembersList()" class="btn btn-primary" style="width: auto;">👥 View All Members</button>
+          <div id="membersList" class="members-list hidden">
+            <div id="membersContainer"></div>
+          </div>
+        </section>
       </main>
+
+      <!-- Dashboard -->
+      <div id="dashboard" class="dashboard hidden">
+        <div class="dashboard-header">
+          <button onclick="closeDashboard()" class="close-btn">✕</button>
+          <h2>📊 My Dashboard</h2>
+        </div>
+        <div class="dashboard-content">
+          <div class="dashboard-card">
+            <h3>Profile Information</h3>
+            <div id="profileInfo"></div>
+          </div>
+          <div class="dashboard-card">
+            <h3>⭐ My Favorites</h3>
+            <div id="favoritesList"></div>
+            <div class="form-group" style="margin-top: 15px;">
+              <input type="text" id="favInput" placeholder="Add favorite..." />
+              <button onclick="addFavorite()" class="btn btn-primary" style="width: auto; margin-top: 10px;">Add</button>
+            </div>
+          </div>
+          <div class="dashboard-card">
+            <h3>Account Stats</h3>
+            <p>Member Since: <strong id="memberSince"></strong></p>
+            <p>Status: <strong id="userStatus">Active</strong></p>
+            <button onclick="deleteAccount()" class="btn btn-outline" style="width: auto; color: #e74c3c; border-color: #e74c3c; margin-top: 10px;">🗑️ Delete Account</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div id="settings" class="settings hidden">
+        <div class="settings-header">
+          <button onclick="closeSettings()" class="close-btn">✕</button>
+          <h2>⚙️ Settings</h2>
+        </div>
+        <div class="settings-content">
+          <div class="setting-item">
+            <h3>Change Password</h3>
+            <form id="changePasswordForm">
+              <div class="form-group">
+                <input type="password" id="currentPassword" placeholder="Current Password" required />
+              </div>
+              <div class="form-group">
+                <input type="password" id="newPassword" placeholder="New Password" required />
+              </div>
+              <div class="form-group">
+                <input type="password" id="confirmNewPassword" placeholder="Confirm New Password" required />
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: auto;">Update Password</button>
+            </form>
+            <div id="passwordError" class="error-message"></div>
+          </div>
+          <div class="setting-item">
+            <h3>Notification Settings</h3>
+            <label class="checkbox-label">
+              <input type="checkbox" id="emailNotif" checked /> Receive email notifications
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="chatNotif" checked /> Chat notifications
+            </label>
+            <button onclick="saveSettings()" class="btn btn-primary" style="width: auto; margin-top: 10px;">Save Settings</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Login Modal -->

@@ -54,6 +54,7 @@ header {
   display: flex;
   gap: 10px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .btn-outline {
@@ -197,6 +198,135 @@ textarea {
 
 .custom-honeypot {
   display: none;
+}
+
+/* Members Section */
+.members-section {
+  border-top: 2px solid var(--light-bg);
+  padding-top: 30px;
+}
+
+.members-list {
+  margin-top: 20px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.members-list.hidden {
+  display: none;
+}
+
+.member-item {
+  background: var(--light-bg);
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  border-left: 4px solid var(--primary-color);
+}
+
+.member-item h4 {
+  color: var(--primary-color);
+  margin-bottom: 5px;
+}
+
+.member-item p {
+  font-size: 0.9em;
+  color: #666;
+  margin: 3px 0;
+}
+
+/* Dashboard & Settings */
+.dashboard, .settings {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 3000;
+  animation: fadeIn 0.3s ease;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.dashboard.hidden, .settings.hidden {
+  display: none;
+}
+
+.dashboard-header, .settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--border-color);
+  position: relative;
+}
+
+.dashboard-header h2, .settings-header h2 {
+  color: var(--primary-color);
+  margin: 0;
+}
+
+.dashboard-content, .settings-content {
+  background: white;
+  border-radius: 10px;
+  padding: 30px;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+.dashboard-card, .setting-item {
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--light-bg);
+}
+
+.dashboard-card:last-child, .setting-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.dashboard-card h3, .setting-item h3 {
+  color: var(--primary-color);
+  margin-bottom: 15px;
+}
+
+.favorite-item {
+  background: var(--light-bg);
+  padding: 10px 15px;
+  margin: 8px 0;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.favorite-item button {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+  cursor: pointer;
+}
+
+.checkbox-label input {
+  width: auto;
+  margin-right: 10px;
 }
 
 /* Modal Styles */
@@ -454,5 +584,9 @@ textarea {
     width: 90%;
     height: 70vh;
     bottom: 70px;
+  }
+
+  .dashboard-content, .settings-content {
+    max-width: 90%;
   }
 }

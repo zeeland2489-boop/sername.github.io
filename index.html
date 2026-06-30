@@ -9,7 +9,17 @@
   <body>
     <div class="container">
       <header>
-        <h1 class="title">🌟 Welcome to Our App</h1>
+        <div class="header-top">
+          <h1 class="title">🌟 Welcome to Our App</h1>
+          <div class="auth-buttons" id="authButtons">
+            <button onclick="showLoginModal()" class="btn btn-outline">Login</button>
+            <button onclick="showRegisterModal()" class="btn btn-primary">Sign Up</button>
+          </div>
+          <div class="user-menu" id="userMenu" style="display:none;">
+            <span id="userName"></span>
+            <button onclick="logout()" class="btn btn-outline">Logout</button>
+          </div>
+        </div>
         <p id="currentTime" class="time-display"></p>
       </header>
 
@@ -60,6 +70,51 @@
         </section>
       </main>
     </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal hidden">
+      <div class="modal-content">
+        <button onclick="closeLoginModal()" class="close-btn">✕</button>
+        <h2>Login</h2>
+        <form id="loginForm" class="auth-form">
+          <div class="form-group">
+            <input type="email" id="loginEmail" placeholder="Email" required />
+          </div>
+          <div class="form-group">
+            <input type="password" id="loginPassword" placeholder="Password" required />
+          </div>
+          <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+        <p>Don't have an account? <a href="#" onclick="switchToRegister()">Sign up</a></p>
+        <div id="loginError" class="error-message"></div>
+      </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="modal hidden">
+      <div class="modal-content">
+        <button onclick="closeRegisterModal()" class="close-btn">✕</button>
+        <h2>Sign Up</h2>
+        <form id="registerForm" class="auth-form">
+          <div class="form-group">
+            <input type="text" id="registerName" placeholder="Full Name" required />
+          </div>
+          <div class="form-group">
+            <input type="email" id="registerEmail" placeholder="Email" required />
+          </div>
+          <div class="form-group">
+            <input type="password" id="registerPassword" placeholder="Password (min 6 chars)" required />
+          </div>
+          <div class="form-group">
+            <input type="password" id="registerConfirm" placeholder="Confirm Password" required />
+          </div>
+          <button type="submit" class="btn btn-primary">Sign Up</button>
+        </form>
+        <p>Already have an account? <a href="#" onclick="switchToLogin()">Login</a></p>
+        <div id="registerError" class="error-message"></div>
+      </div>
+    </div>
+
     <button id="chatToggle" onclick="toggleChat()" class="chat-toggle">💬 Chat</button>
     <div id="chatSection" class="hidden chat-box">
       <div id="chatHeader" class="chat-header">

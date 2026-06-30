@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome App 📑</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1 class="title">🌟 Welcome to Our App</h1>
+        <p id="currentTime" class="time-display"></p>
+      </header>
+
+      <main>
+        <section class="content-section">
+          <h2>Get in Touch</h2>
+          <form action="https://formspree.io/f/mrewlnqn" method="POST" class="contact-form">
+            <div class="form-group">
+              <input type="text" name="name" placeholder="Your Name" required />
+            </div>
+            <div class="form-group">
+              <input type="email" name="email" placeholder="your@email.com" required />
+            </div>
+            <div class="form-group">
+              <input type="text" name="subject" placeholder="Subject" required />
+            </div>
+            <div class="form-group">
+              <textarea name="message" placeholder="Your message..." required></textarea>
+            </div>
+            <input type="text" name="_gotcha" style="display:none" />
+            <div class="custom-honeypot">
+              <input type="text" name="contact_time" autocomplete="off" tabindex="-1" />
+            </div>
+            <input type="hidden" name="_next" value="https://your-site.com/thank-you" />
+            <button type="submit" class="btn btn-primary">Send Message</button>
+          </form>
+        </section>
+
+        <section class="features">
+          <h2>Features</h2>
+          <div class="feature-grid">
+            <div class="feature-card">
+              <span class="feature-icon">💬</span>
+              <h3>Live Chat</h3>
+              <p>Chat with us in real-time</p>
+            </div>
+            <div class="feature-card">
+              <span class="feature-icon">⏰</span>
+              <h3>Real-time Clock</h3>
+              <p>Always know the current time</p>
+            </div>
+            <div class="feature-card">
+              <span class="feature-icon">📎</span>
+              <h3>File Sharing</h3>
+              <p>Share images, videos & documents</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <button id="chatToggle" onclick="toggleChat()" class="chat-toggle">💬 Chat</button>
+    <div id="chatSection" class="hidden chat-box">
+      <div id="chatHeader" class="chat-header">
+        <span>💬 Chat Box</span>
+        <button onclick="toggleChat()" class="close-btn">✕</button>
+      </div>
+      <div id="chatMessages" class="chat-messages"></div>
+      <div id="chatInputContainer" class="chat-input-container">
+        <input type="text" id="chatInput" placeholder="Type a message..." class="chat-input" />
+        <input type="file" id="chatFile" style="display:none;" accept="image/*,video/*,.pdf,.doc,.docx" />
+        <button type="button" onclick="document.getElementById('chatFile').click()" title="Attach file" class="btn btn-icon">📎</button>
+        <button onclick="sendMessage()" class="btn btn-icon">Send</button>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

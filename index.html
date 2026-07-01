@@ -1,206 +1,94 @@
 <!DOCTYPE html>
-<html lang="th">
+<html>
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ยินดีต้อนรับ📑</title>
+    <title>Chat Application</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="container">
-      <header>
-        <div class="header-top">
-          <h1 class="title">🌟 Welcome to Our App</h1>
-          <div class="auth-buttons" id="authButtons">
-            <button onclick="showLoginModal()" class="btn btn-outline">Login</button>
-            <button onclick="showRegisterModal()" class="btn btn-primary">Sign Up</button>
-          </div>
-          <div class="user-menu" id="userMenu" style="display:none;">
-            <span id="userName"></span>
-            <button onclick="showDashboard()" class="btn btn-outline">📊 Dashboard</button>
-            <button onclick="showSettings()" class="btn btn-outline">⚙️ Settings</button>
-            <button onclick="logout()" class="btn btn-outline">Logout</button>
-          </div>
-        </div>
-        <p id="currentTime" class="time-display"></p>
-      </header>
-
-      <main id="mainContent">
-        <section class="content-section">
-          <h2>Get in Touch</h2>
-          <form action="https://formspree.io/f/mrewlnqn" method="POST" class="contact-form">
-            <div class="form-group">
-              <input type="text" name="name" placeholder="Your Name" required />
-            </div>
-            <div class="form-group">
-              <input type="email" name="email" placeholder="your@email.com" required />
-            </div>
-            <div class="form-group">
-              <input type="text" name="subject" placeholder="Subject" required />
-            </div>
-            <div class="form-group">
-              <textarea name="message" placeholder="Your message..." required></textarea>
-            </div>
-            <input type="text" name="_gotcha" style="display:none" />
-            <div class="custom-honeypot">
-              <input type="text" name="contact_time" autocomplete="off" tabindex="-1" />
-            </div>
-            <input type="hidden" name="_next" value="https://your-site.com/thank-you" />
-            <button type="submit" class="btn btn-primary">Send Message</button>
-          </form>
-        </section>
-
-        <section class="features">
-          <h2>Features</h2>
-          <div class="feature-grid">
-            <div class="feature-card">
-              <span class="feature-icon">💬</span>
-              <h3>Live Chat</h3>
-              <p>Chat with us in real-time</p>
-            </div>
-            <div class="feature-card">
-              <span class="feature-icon">⏰</span>
-              <h3>Real-time Clock</h3>
-              <p>Always know the current time</p>
-            </div>
-            <div class="feature-card">
-              <span class="feature-icon">📎</span>
-              <h3>File Sharing</h3>
-              <p>Share images, videos & documents</p>
-            </div>
-          </div>
-        </section>
-
-        <section class="members-section">
-          <h2>Members</h2>
-          <button onclick="toggleMembersList()" class="btn btn-primary" style="width: auto;">👥 View All Members</button>
-          <div id="membersList" class="members-list hidden">
-            <div id="membersContainer"></div>
-          </div>
-        </section>
-      </main>
-
-      <!-- Dashboard -->
-      <div id="dashboard" class="dashboard hidden">
-        <div class="dashboard-header">
-          <button onclick="closeDashboard()" class="close-btn">✕</button>
-          <h2>📊 My Dashboard</h2>
-        </div>
-        <div class="dashboard-content">
-          <div class="dashboard-card">
-            <h3>Profile Information</h3>
-            <div id="profileInfo"></div>
-          </div>
-          <div class="dashboard-card">
-            <h3>⭐ My Favorites</h3>
-            <div id="favoritesList"></div>
-            <div class="form-group" style="margin-top: 15px;">
-              <input type="text" id="favInput" placeholder="Add favorite..." />
-              <button onclick="addFavorite()" class="btn btn-primary" style="width: auto; margin-top: 10px;">Add</button>
-            </div>
-          </div>
-          <div class="dashboard-card">
-            <h3>Account Stats</h3>
-            <p>Member Since: <strong id="memberSince"></strong></p>
-            <p>Status: <strong id="userStatus">Active</strong></p>
-            <button onclick="deleteAccount()" class="btn btn-outline" style="width: auto; color: #e74c3c; border-color: #e74c3c; margin-top: 10px;">🗑️ Delete Account</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Settings -->
-      <div id="settings" class="settings hidden">
-        <div class="settings-header">
-          <button onclick="closeSettings()" class="close-btn">✕</button>
-          <h2>⚙️ Settings</h2>
-        </div>
-        <div class="settings-content">
-          <div class="setting-item">
-            <h3>Change Password</h3>
-            <form id="changePasswordForm">
-              <div class="form-group">
-                <input type="password" id="currentPassword" placeholder="Current Password" required />
-              </div>
-              <div class="form-group">
-                <input type="password" id="newPassword" placeholder="New Password" required />
-              </div>
-              <div class="form-group">
-                <input type="password" id="confirmNewPassword" placeholder="Confirm New Password" required />
-              </div>
-              <button type="submit" class="btn btn-primary" style="width: auto;">Update Password</button>
-            </form>
-            <div id="passwordError" class="error-message"></div>
-          </div>
-          <div class="setting-item">
-            <h3>Notification Settings</h3>
-            <label class="checkbox-label">
-              <input type="checkbox" id="emailNotif" checked /> Receive email notifications
-            </label>
-            <label class="checkbox-label">
-              <input type="checkbox" id="chatNotif" checked /> Chat notifications
-            </label>
-            <button onclick="saveSettings()" class="btn btn-primary" style="width: auto; margin-top: 10px;">Save Settings</button>
-          </div>
-        </div>
+    <div id="loginPage" class="page">
+      <div class="login-container">
+        <h1>💬 Chat Room</h1>
+        <input type="text" id="userId" placeholder="Enter Your User ID" />
+        <button onclick="login()">Login</button>
       </div>
     </div>
 
-    <!-- Login Modal -->
-    <div id="loginModal" class="modal hidden">
-      <div class="modal-content">
-        <button onclick="closeLoginModal()" class="close-btn">✕</button>
-        <h2>Login</h2>
-        <form id="loginForm" class="auth-form">
-          <div class="form-group">
-            <input type="email" id="loginEmail" placeholder="Email" required />
+    <div id="chatPage" class="page hidden">
+      <div class="chat-wrapper">
+        <!-- Sidebar Menu -->
+        <div class="sidebar hidden" id="sidebar">
+          <div class="sidebar-header">
+            <h3>🔗 Menu</h3>
+            <button class="close-sidebar" onclick="toggleSidebar()">✕</button>
           </div>
-          <div class="form-group">
-            <input type="password" id="loginPassword" placeholder="Password" required />
+          <div id="menuLinks" class="menu-links"></div>
+          <div class="add-menu-section hidden" id="addMenuSection">
+            <h4>Add Menu Link</h4>
+            <input type="text" id="menuTitle" placeholder="Link Title" />
+            <input type="text" id="menuUrl" placeholder="URL or HTML" />
+            <select id="menuType">
+              <option value="url">Open URL</option>
+              <option value="html">Show HTML</option>
+            </select>
+            <button onclick="addMenuLink()">Add Link</button>
+            <button onclick="toggleAddMenu()" class="cancel-btn">Cancel</button>
           </div>
-          <button type="submit" class="btn btn-primary">Login</button>
-        </form>
-        <p>Don't have an account? <a href="#" onclick="switchToRegister()">Sign up</a></p>
-        <div id="loginError" class="error-message"></div>
-      </div>
-    </div>
+        </div>
 
-    <!-- Register Modal -->
-    <div id="registerModal" class="modal hidden">
-      <div class="modal-content">
-        <button onclick="closeRegisterModal()" class="close-btn">✕</button>
-        <h2>Sign Up</h2>
-        <form id="registerForm" class="auth-form">
-          <div class="form-group">
-            <input type="text" id="registerName" placeholder="Full Name" required />
+        <!-- Main Chat Area -->
+        <div class="chat-container">
+          <div class="header">
+            <button class="menu-toggle" onclick="toggleSidebar()">☰ Menu</button>
+            <h2>💬 Chat Room</h2>
+            <span id="userDisplay"></span>
+            <button onclick="logout()">🚪 Logout</button>
           </div>
-          <div class="form-group">
-            <input type="email" id="registerEmail" placeholder="Email" required />
-          </div>
-          <div class="form-group">
-            <input type="password" id="registerPassword" placeholder="Password (min 6 chars)" required />
-          </div>
-          <div class="form-group">
-            <input type="password" id="registerConfirm" placeholder="Confirm Password" required />
-          </div>
-          <button type="submit" class="btn btn-primary">Sign Up</button>
-        </form>
-        <p>Already have an account? <a href="#" onclick="switchToLogin()">Login</a></p>
-        <div id="registerError" class="error-message"></div>
-      </div>
-    </div>
 
-    <button id="chatToggle" onclick="toggleChat()" class="chat-toggle">💬 Chat</button>
-    <div id="chatSection" class="hidden chat-box">
-      <div id="chatHeader" class="chat-header">
-        <span>💬 Chat Box</span>
-        <button onclick="toggleChat()" class="close-btn">✕</button>
-      </div>
-      <div id="chatMessages" class="chat-messages"></div>
-      <div id="chatInputContainer" class="chat-input-container">
-        <input type="text" id="chatInput" placeholder="Type a message..." class="chat-input" />
-        <input type="file" id="chatFile" style="display:none;" accept="image/*,video/*,.pdf,.doc,.docx" />
-        <button type="button" onclick="document.getElementById('chatFile').click()" title="Attach file" class="btn btn-icon">📎</button>
-        <button onclick="sendMessage()" class="btn btn-icon">Send</button>
+          <div class="admin-panel hidden" id="adminPanel">
+            <h3>⚙️ Admin Panel</h3>
+            <div class="admin-section">
+              <h4>➕ Add New Member</h4>
+              <input type="text" id="newMemberId" placeholder="User ID" />
+              <input type="text" id="newMemberName" placeholder="Username" />
+              <input type="password" id="newMemberPass" placeholder="Password" />
+              <button onclick="addMember()">Add Member</button>
+            </div>
+            
+            <div class="admin-section">
+              <h4>👥 Members List</h4>
+              <ul id="membersList"></ul>
+            </div>
+
+            <div class="admin-section">
+              <h4>🔗 Menu Management</h4>
+              <button onclick="toggleAddMenu()">➕ Add Menu Link</button>
+              <ul id="menuManageList"></ul>
+            </div>
+          </div>
+
+          <div class="chat-box">
+            <div id="messages" class="messages"></div>
+
+            <div class="input-area">
+              <input type="text" id="messageInput" placeholder="Type a message..." />
+              <input type="file" id="fileInput" style="display:none" accept="*/*" />
+              <button onclick="document.getElementById('fileInput').click()">📎 File</button>
+              <button onclick="sendMessage()">📤 Send</button>
+              <button id="adminBtn" class="hidden" onclick="toggleAdminPanel()">⚙️ Admin</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- HTML Modal -->
+        <div class="html-modal hidden" id="htmlModal">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2 id="modalTitle"></h2>
+              <button onclick="closeHtmlModal()" class="close-btn">✕</button>
+            </div>
+            <div id="modalBody" class="modal-body"></div>
+          </div>
+        </div>
       </div>
     </div>
 

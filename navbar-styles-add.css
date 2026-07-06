@@ -1,0 +1,123 @@
+/* ===== Navbar — สไตล์ SynaptexCore (โทนสี Indigo #6366F1) ===== */
+/* เพิ่มต่อท้ายไฟล์ styles.css เดิม */
+
+:root {
+  --brand-indigo: #6366f1;
+  --brand-indigo-dark: #4f46e5;
+  --brand-bg: #ffffff;
+  --brand-border: #eceefb;
+}
+
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--brand-bg);
+  border-bottom: 1px solid var(--brand-border);
+  padding: 12px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  flex-wrap: wrap;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  color: #1e1b3a;
+}
+
+.navbar-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--brand-indigo) 0%, #8b5cf6 100%);
+  font-size: 18px;
+}
+
+.navbar-title {
+  font-size: 17px;
+  letter-spacing: -0.2px;
+}
+
+.navbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  justify-content: center;
+}
+
+.nav-item {
+  border: none;
+  background: transparent;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.nav-item:hover {
+  background: #f3f4ff;
+  color: var(--brand-indigo-dark);
+}
+
+.nav-item.active {
+  background: var(--brand-indigo);
+  color: #fff;
+}
+
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-chip {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+  background: #f3f4ff;
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+
+.logout-btn {
+  border: none;
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.logout-btn:hover {
+  background: #fee2e2;
+}
+
+@media (max-width: 640px) {
+  .navbar {
+    justify-content: flex-start;
+  }
+  .navbar-nav {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+  .navbar-user {
+    margin-left: auto;
+  }
+}

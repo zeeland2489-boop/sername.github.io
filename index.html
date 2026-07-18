@@ -1,28 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-<title>Chat Application</title>
-<link rel="stylesheet" href="styles.css" />
-<link rel="stylesheet" href="navbar-styles-add.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <title>Chat Application</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="navbar-styles-add.css" />
 </head>
 <body>
   <div id="loginPage" class="page">
     <div class="login-container">
-      <div class="login-icon">💬</div>
+      <div class="login-icon" aria-hidden="true">💬</div>
       <h1 class="login-title">Chat Room</h1>
       <p class="login-subtitle">เข้าสู่ระบบเพื่อเริ่มพูดคุยกับเพื่อน ๆ ของคุณ</p>
 
-      <div class="login-form">
+      <div class="login-form" role="form">
         <label for="userId" class="login-label">User ID</label>
         <input
           type="text"
           id="userId"
           placeholder="กรอก User ID ของคุณ"
-          onkeypress="if (event.key === 'Enter') login()"
+          aria-label="User ID input"
+          required
         />
-        <button class="login-btn" onclick="login()">เข้าสู่ระบบ</button>
+        <button class="login-btn" type="button" aria-label="Login button">เข้าสู่ระบบ</button>
       </div>
 
       <p class="login-footer">© 2026 Chat Room</p>
@@ -32,89 +34,89 @@
   <div id="chatPage" class="page hidden">
     <div class="chat-wrapper">
       <!-- Sidebar Menu -->
-      <div class="sidebar hidden" id="sidebar">
+      <div class="sidebar hidden" id="sidebar" role="navigation" aria-label="Menu sidebar">
         <div class="sidebar-header">
           <h3>🔗 Menu</h3>
-          <button class="close-sidebar" onclick="toggleSidebar()">✕</button>
+          <button class="close-sidebar" aria-label="Close sidebar" type="button">✕</button>
         </div>
-        <div id="menuLinks" class="menu-links"></div>
-        <div class="add-menu-section hidden" id="addMenuSection">
+        <div id="menuLinks" class="menu-links" role="list"></div>
+        <div class="add-menu-section hidden" id="addMenuSection" role="form">
           <h4>Add Menu Link</h4>
-          <input type="text" id="menuTitle" placeholder="Link Title" />
-          <input type="text" id="menuUrl" placeholder="URL or HTML" />
-          <select id="menuType">
+          <input type="text" id="menuTitle" placeholder="Link Title" aria-label="Menu title" />
+          <input type="text" id="menuUrl" placeholder="URL or HTML" aria-label="Menu URL or HTML" />
+          <select id="menuType" aria-label="Menu type">
             <option value="url">Open URL</option>
             <option value="html">Show HTML</option>
           </select>
-          <button onclick="addMenuLink()">Add Link</button>
-          <button onclick="toggleAddMenu()" class="cancel-btn">Cancel</button>
+          <button type="button" class="add-btn" aria-label="Add menu link">Add Link</button>
+          <button type="button" class="cancel-btn" aria-label="Cancel">Cancel</button>
         </div>
       </div>
 
       <!-- Main Chat Area -->
       <div class="chat-container">
-        <div class="navbar">
+        <div class="navbar" role="banner">
           <div class="navbar-brand">
-            <span class="navbar-logo">💬</span>
+            <span class="navbar-logo" aria-hidden="true">💬</span>
             <span class="navbar-title">Chat Room</span>
           </div>
 
-          <nav class="navbar-nav">
-            <button class="nav-item active">💬 แชท</button>
-            <button class="nav-item" onclick="toggleSidebar()">🔗 เมนู</button>
-            <button id="adminBtn" class="nav-item hidden" onclick="toggleAdminPanel()">⚙️ Admin</button>
+          <nav class="navbar-nav" aria-label="Main navigation">
+            <button class="nav-item active" type="button" aria-current="page">💬 แชท</button>
+            <button class="nav-item" type="button" aria-label="Toggle menu">🔗 เมนู</button>
+            <button id="adminBtn" class="nav-item hidden" type="button" aria-label="Admin panel">⚙️ Admin</button>
           </nav>
 
           <div class="navbar-user">
-            <span id="userDisplay" class="user-chip"></span>
-            <button class="logout-btn" onclick="logout()">🚪 <span class="logout-text">ออกจากระบบ</span></button>
+            <span id="userDisplay" class="user-chip" aria-live="polite"></span>
+            <button class="logout-btn" type="button" aria-label="Logout">🚪 <span class="logout-text">ออกจากระบบ</span></button>
           </div>
         </div>
 
-        <div class="admin-panel hidden" id="adminPanel">
+        <div class="admin-panel hidden" id="adminPanel" role="region" aria-label="Admin panel">
           <h3>⚙️ Admin Panel</h3>
           <div class="admin-section">
             <h4>➕ Add New Member</h4>
-            <input type="text" id="newMemberId" placeholder="User ID" />
-            <input type="text" id="newMemberName" placeholder="Username" />
-            <input type="password" id="newMemberPass" placeholder="Password" />
-            <button onclick="addMember()">Add Member</button>
+            <input type="text" id="newMemberId" placeholder="User ID" aria-label="New member ID" />
+            <input type="text" id="newMemberName" placeholder="Username" aria-label="New member name" />
+            <input type="password" id="newMemberPass" placeholder="Password" aria-label="New member password" />
+            <button type="button" class="add-btn" aria-label="Add new member">Add Member</button>
           </div>
           <div class="admin-section">
             <h4>👥 Members List</h4>
-            <ul id="membersList"></ul>
+            <ul id="membersList" role="list"></ul>
           </div>
           <div class="admin-section">
             <h4>🔗 Menu Management</h4>
-            <button onclick="toggleAddMenu()">➕ Add Menu Link</button>
-            <ul id="menuManageList"></ul>
+            <button type="button" class="add-btn" aria-label="Add menu link">➕ Add Menu Link</button>
+            <ul id="menuManageList" role="list"></ul>
           </div>
         </div>
 
         <div class="chat-box">
-          <div id="messages" class="messages"></div>
+          <div id="messages" class="messages" role="log" aria-live="polite" aria-label="Chat messages"></div>
           <div class="input-area">
-            <input type="text" id="messageInput" placeholder="Type a message..." />
-            <input type="file" id="fileInput" style="display:none" accept="*/*" />
-            <button onclick="document.getElementById('fileInput').click()">📎 File</button>
-            <button onclick="sendMessage()">📤 Send</button>
+            <input type="text" id="messageInput" placeholder="Type a message..." aria-label="Message input" />
+            <input type="file" id="fileInput" style="display:none" accept="*/*" aria-label="File upload" />
+            <button type="button" class="file-btn" aria-label="Upload file">📎 File</button>
+            <button type="button" class="send-btn" aria-label="Send message">📤 Send</button>
           </div>
         </div>
       </div>
 
       <!-- HTML Modal -->
-      <div class="html-modal hidden" id="htmlModal">
+      <div class="html-modal hidden" id="htmlModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="modal-content">
           <div class="modal-header">
             <h2 id="modalTitle"></h2>
-            <button onclick="closeHtmlModal()" class="close-btn">✕</button>
+            <button type="button" class="close-btn" aria-label="Close modal">✕</button>
           </div>
-          <div id="modalBody" class="modal-body"></div>
+          <div id="modalBody" class="modal-body" role="document"></div>
         </div>
       </div>
     </div>
   </div>
 
-<script src="script.js"></script>
+  <script src="script.js" defer></script>
 </body>
 </html>

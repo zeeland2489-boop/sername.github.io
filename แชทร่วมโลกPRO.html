@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global DNA Chat - AI Edition</title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e2937 100%); min-height: 100vh; }
+        .font-mono-code { font-family: 'Fira Code', 'Courier New', monospace; }
+        .glass { background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .chat-bubble { animation: bubbleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes bubbleIn { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); align-items: center; justify-content: center; padding: 1rem; }
+        .modal.active { display: flex; }
+        .modal-content { background: rgba(15, 23, 42, 0.98); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1.5rem; padding: 2rem; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; }
+        .menu-bar { display: flex; align-items: center; gap: 0.5rem; background: rgba(255, 255, 255, 0.04); padding: 0.75rem; border-radius: 1.25rem; border: 1px solid rgba(255, 255, 255, 0.08); overflow-x: auto; scroll-behavior: smooth; flex-wrap: nowrap; }
+        .menu-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1.25rem; background: transparent; border: none; border-radius: 0.875rem; color: #94a3b8; font-size: 0.875rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0; }
+        .menu-btn:hover { background: rgba(255, 255, 255, 0.08); color: #e2e8f0; transform: translateY(-2px); }
+        .menu-btn.active { background: rgba(59, 130, 246, 0.2); color: #60a5fa; box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); }
+        .menu-btn .badge { background: #ef4444; color: white; font-size: 0.6rem; padding: 0.1rem 0.4rem; border-radius: 9999px; margin-left: -0.2rem; }
+        .api-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; padding: 1rem; margin-bottom: 1rem; }
+        .api-status { display: inline-block; width: 0.75rem; height: 0.75rem; border-radius: 50%; margin-right: 0.5rem; flex-shrink: 0; }
+        .api-status.active { background: #10b981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
+        .api-status.inactive { background: #6b7280; }
+        .scrollbar-thin::-webkit-scrollbar { width: 4px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
+        .online-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+        .online-dot.online { background: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.5); }
+        .online-dot.offline { background: #6b7280; }
+        .server-status { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: #94a3b8; padding: 0.25rem 0.75rem; background: rgba(255,255,255,0.05); border-radius: 9999px; }
+        .server-status .dot { width: 6px; height: 6px; border-radius: 50%; animation: pulse-dot 2s infinite; }
+        .server-status .dot.online { background: #10b981; }
+        .server-status .dot.offline { background: #ef4444; animation: none; }
+        @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
+        .message-timestamp { font-size: 0.6rem; color: #64748b; margin-left: 0.5rem; }
+        .ai-model-tag { display: inline-block; font-size: 0.6rem; padding: 0.1rem 0.5rem; border-radius: 9999px; background: rgba(255,255,255,0.1); margin-left: 0.5rem; }
+        .free-badge { background: #10b98120; color: #10b981; font-size: 0.6rem; padding: 0.1rem 0.5rem; border-radius: 9999px; margin-left: 0.5rem; border: 1px solid #10b98140; }
+        
+        @media (max-width: 768px) {
+            .menu-bar { display: none; position: fixed; left: 0; top: 4.5rem; flex-direction: column; width: 100%; gap: 0.25rem; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0; padding: 1rem; z-index: 40; max-height: calc(100vh - 4.5rem); overflow-y: auto; }
+            .menu-bar.active { display: flex; }
+            .menu-btn { width: 100%; justify-content: flex-start; }
+            .modal-content { padding: 1.5rem; margin: 0.5rem; }
+            .admin-tabs { flex-wrap: wrap; }
+            .admin-tabs .tab-btn { flex: 1; min-width: 60px; text-align: center; font-size: 0.7rem; padding: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Login Page -->
+    <div id="login-page" class="min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-md w-full mx-auto">
+            <div class="glass rounded-3xl p-8 md:p-10 shadow-2xl border border-white/15">
+                <div class="text-center mb-8">
+                    <div class="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/20">
+                        <span class="text-5xl">🧬</span>
+                    </div>
+                    <h2 class="text-3xl font-bold mb-2 tracking-tight">ยินดีต้อนรับ</h2>
+                    <p class="text-slate-400 text-sm">กรุณาใส่รหัส DNA เพื่อเข้าสู่ระบบ</p>
+                    <p class="text-slate-500 text-xs mt-3">💡 พิมพ์ <code class="bg-white/10 px-2 py-1 rounded">ADMIN55</code> เพื่อเข้าสู่โหมด Admin</p>
+                    <div class="mt-3 flex items-center justify-center gap-2 text-xs text-slate-500">
+                        <i class="fas fa-server"></i>
+                        <span id="server-status-text">🟢 เซิร์ฟเวอร์ออนไลน์</span>
+                    </div>
+                </div>
+                
+                <form id="dna-form" class="space-y-5" novalidate>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider mb-2 text-slate-400">รหัส DNA</label>
+                        <input type="text" id="dna-input" class="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition text-white placeholder-slate-600 font-mono tracking-widest" placeholder="z.B. ATCGTTAGCTA" required autocomplete="off">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider mb-2 text-slate-400">รหัสยืนยัน</label>
+                        <div class="flex gap-2">
+                            <div id="captcha-display" class="flex-1 px-5 py-4 bg-white/5 border border-white/10 rounded-2xl text-center font-mono text-lg text-white select-none tracking-widest"></div>
+                            <button type="button" onclick="generateCaptcha()" class="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-2xl text-white transition"><i class="fas fa-refresh"></i></button>
+                        </div>
+                        <input type="text" id="captcha-input" class="w-full mt-2 px-5 py-4 bg-white/5 border border-white/10 rounded-2xl focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition text-white placeholder-slate-600" placeholder="พิมพ์รหัสยืนยัน" required autocomplete="off">
+                    </div>
+                    <button type="submit" class="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-2xl font-semibold text-base transition shadow-lg shadow-purple-600/20 active:scale-[0.99]">เข้าสู่ระบบ</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app-page" class="hidden min-h-screen flex flex-col">
+        <header id="main-header" class="glass sticky top-0 z-50 border-b border-white/10">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 flex-shrink-0">
+                    <div class="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0"><span class="text-xl font-bold">🧬</span></div>
+                    <h1 class="text-lg font-bold tracking-tight hidden sm:block" id="site-title">Global DNA Chat</h1>
+                </div>
+                <button class="md:hidden" onclick="toggleMenuBar()"><i class="fas fa-bars text-lg"></i></button>
+                <nav id="menu-bar" class="menu-bar" role="navigation">
+                    <button onclick="showSection('chat')" class="menu-btn active" data-section="chat"><i class="fas fa-comments"></i><span class="hidden md:inline">แชท</span><span class="badge" id="chat-badge">0</span></button>
+                    <button onclick="showSection('dev-chat')" class="menu-btn" data-section="dev-chat"><i class="fas fa-code"></i><span class="hidden md:inline">นักพัฒนา</span></button>
+                    <button onclick="showSection('ai-chat')" class="menu-btn" data-section="ai-chat"><i class="fas fa-robot"></i><span class="hidden md:inline">AI</span></button>
+                    <button onclick="showSection('users')" class="menu-btn" data-section="users"><i class="fas fa-users"></i><span class="hidden md:inline">ผู้ใช้</span></button>
+                    <button onclick="showSection('help')" class="menu-btn" data-section="help"><i class="fas fa-question-circle"></i><span class="hidden md:inline">ช่วยเหลือ</span></button>
+                </nav>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    <div class="server-status hidden sm:flex"><span class="dot online" id="server-dot"></span><span class="server-label" id="server-label">เซิร์ฟเวอร์</span><span id="online-count" class="text-emerald-400">0</span></div>
+                    <div class="hidden md:flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10"><div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div><span id="user-display" class="text-xs text-slate-300">ผู้ใช้</span></div>
+                    <button id="admin-btn" onclick="toggleAdminPanel()" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 transition hidden"><i class="fas fa-crown"></i></button>
+                    <button onclick="logout()" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition"><i class="fas fa-sign-out-alt"></i></button>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-6xl w-full mx-auto p-4 md:p-6 flex-1 flex flex-col" id="main-content">
+            <!-- Chat Section -->
+            <div id="chat" class="flex-1 flex flex-col h-[calc(100vh-120px)]">
+                <div class="glass rounded-3xl p-4 md:p-6 flex flex-col flex-1 h-full shadow-2xl relative overflow-hidden">
+                    <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-4 flex-wrap gap-2">
+                        <div class="flex items-center gap-3"><div class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></div><div><h2 class="font-bold text-lg" id="chat-room-title">แชทห้องหลัก</h2><p class="text-slate-400 text-xs" id="user-count">ผู้ใช้ออนไลน์: 0</p></div></div>
+                        <button onclick="clearChatHistory()" class="text-xs text-slate-500 hover:text-red-400 transition px-2 py-1 rounded-lg hover:bg-red-500/10"><i class="fas fa-trash-alt"></i> ล้าง</button>
+                    </div>
+                    <div id="chat-messages" class="flex-1 overflow-y-auto space-y-3 pr-2 mb-4 scrollbar-thin"></div>
+                    <form id="message-form" class="flex gap-2 bg-white/5 p-2 rounded-2xl border border-white/10">
+                        <input type="text" id="message-input" class="flex-1 px-4 py-3 bg-transparent rounded-xl focus:outline-none text-sm placeholder-slate-500 text-white" placeholder="พิมพ์ข้อความ..." autocomplete="off">
+                        <button type="submit" class="px-5 bg-blue-600 hover:bg-blue-500 active:scale-95 rounded-xl font-medium text-sm transition flex items-center gap-2 shadow-md shadow-blue-600/20 flex-shrink-0"><span>ส่ง</span> <i class="fas fa-paper-plane text-xs"></i></button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Developer Chat -->
+            <div id="dev-chat" class="hidden flex-1 flex-col h-[calc(100vh-120px)]">
+                <div class="glass border border-emerald-500/20 rounded-3xl p-4 md:p-6 flex flex-col flex-1 h-full shadow-2xl relative overflow-hidden">
+                    <div class="flex items-center justify-between border-b border-emerald-500/20 pb-4 mb-4 flex-wrap gap-2">
+                        <div class="flex items-center gap-3"><div class="w-8 h-8 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center justify-center text-emerald-400 shadow-md flex-shrink-0"><i class="fas fa-code text-sm"></i></div><div><h2 class="font-bold text-lg text-emerald-400 font-mono-code">// Dev_Zone</h2><p class="text-slate-400 text-xs">แลกเปลี่ยนโค้ดและคำสั่ง Terminal</p></div></div>
+                    </div>
+                    <div id="dev-chat-messages" class="flex-1 overflow-y-auto space-y-3 pr-2 mb-4 bg-black/30 p-4 rounded-2xl border border-white/5 font-mono-code text-sm text-slate-300 scrollbar-thin"></div>
+                    <form id="dev-message-form" class="flex gap-2 bg-white/5 p-2 rounded-2xl border border-white/10">
+                        <input type="text" id="dev-message-input" class="flex-1 px-4 py-3 bg-transparent rounded-xl focus:outline-none text-sm placeholder-slate-500 text-emerald-400 font-mono-code" placeholder="user@developer:~ $ พิมพ์โค้ด..." autocomplete="off">
+                        <button type="submit" class="px-5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 rounded-xl font-medium text-sm transition flex items-center gap-2 shadow-md shadow-emerald-600/20 flex-shrink-0"><span>รัน</span> <i class="fas fa-terminal text-xs"></i></button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- AI Chat -->
+            <div id="ai-chat" class="hidden flex-1 flex-col h-[calc(100vh-120px)]">
+                <div class="glass rounded-3xl p-4 md:p-6 flex flex-col flex-1 h-full shadow-2xl">
+                    <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-4 flex-wrap gap-2">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-md flex-shrink-0"><i class="fas fa-robot text-sm"></i></div>
+                            <div>
+                                <h2 class="font-bold text-lg">AI ผู้ช่วย</h2>
+                                <p class="text-slate-400 text-xs" id="ai-provider-status">เลือก AI Provider ใน Admin</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span id="ai-model-badge" class="ai-model-tag text-slate-400">⚡ พร้อมใช้งาน</span>
+                        </div>
+                    </div>
+                    <div id="ai-chat-messages" class="flex-1 overflow-y-auto space-y-3 pr-2 mb-4 scrollbar-thin"></div>
+                    <form id="ai-message-form" class="flex gap-2 bg-white/5 p-2 rounded-2xl border border-white/10">
+                        <input type="text" id="ai-message-input" class="flex-1 px-4 py-3 bg-transparent rounded-xl focus:outline-none text-sm placeholder-slate-500 text-white" placeholder="ถามเกี่ยวกับ DNA, วิทยาศาสตร์, หรืออะไรก็ได้..." autocomplete="off">
+                        <button type="submit" class="px-5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 active:scale-95 rounded-xl font-medium text-sm transition flex items-center gap-2 shadow-md flex-shrink-0"><span>ถาม AI</span> <i class="fas fa-magic text-xs"></i></button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Users Section -->
+            <div id="users" class="hidden flex-1 flex-col h-[calc(100vh-120px)]">
+                <div class="glass rounded-3xl p-4 md:p-6 flex flex-col flex-1 h-full shadow-2xl">
+                    <div class="flex items-center border-b border-white/10 pb-4 mb-4"><div class="flex items-center gap-3"><div class="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center shadow-md flex-shrink-0"><i class="fas fa-users text-sm"></i></div><div><h2 class="font-bold text-lg">ผู้ใช้ทั้งหมด</h2><p class="text-slate-400 text-xs" id="total-users-label">จำนวนผู้ใช้: 0</p></div></div></div>
+                    <div id="users-list" class="flex-1 overflow-y-auto space-y-2 pr-2 scrollbar-thin"><p class="text-slate-400 text-sm text-center py-8">ไม่มีผู้ใช้ออนไลน์</p></div>
+                </div>
+            </div>
+
+            <!-- Help -->
+            <div id="help" class="hidden flex-1 flex-col h-[calc(100vh-120px)]">
+                <div class="glass rounded-3xl p-4 md:p-6 flex flex-col flex-1 h-full shadow-2xl">
+                    <div class="flex items-center border-b border-white/10 pb-4 mb-4"><div class="flex items-center gap-3"><div class="w-8 h-8 bg-gradient-to-br from-green-500 to-teal-500 rounded-xl flex items-center justify-center shadow-md flex-shrink-0"><i class="fas fa-question-circle text-sm"></i></div><div><h2 class="font-bold text-lg">ช่วยเหลือ</h2><p class="text-slate-400 text-xs">คำแนะนำและการใช้งาน</p></div></div></div>
+                    <div class="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-thin">
+                        <div class="bg-white/5 p-4 rounded-2xl border border-white/10"><h3 class="font-semibold text-lg mb-2 text-blue-400">📌 ระบบเซิร์ฟเวอร์</h3><p class="text-slate-300 text-sm">ระบบบันทึกข้อความและประวัติการแชทไว้ใน Local Storage</p></div>
+                        <div class="bg-white/5 p-4 rounded-2xl border border-white/10"><h3 class="font-semibold text-lg mb-2 text-emerald-400">💻 โซนนักพัฒนา</h3><p class="text-slate-300 text-sm">ใช้สำหรับแลกเปลี่ยนโค้ดและคำสั่ง Terminal</p></div>
+                        <div class="bg-white/5 p-4 rounded-2xl border border-white/10"><h3 class="font-semibold text-lg mb-2 text-purple-400">🤖 AI ผู้ช่วย ฟรี!</h3><p class="text-slate-300 text-sm">รองรับ API ฟรี: Gemini, Groq, Hugging Face, Cohere, Claude (มีฟรี tier), OpenAI (มี free trial)</p></div>
+                        <div class="bg-white/5 p-4 rounded-2xl border border-white/10"><h3 class="font-semibold text-lg mb-2 text-yellow-400">👑 ฟีเจอร์ Admin</h3><p class="text-slate-300 text-sm">เข้าสู่ระบบด้วย ADMIN55 เพื่อตั้งค่า AI, สร้างช่องทาง, เพิ่มวิดีโอ, ปรับแต่งธีม</p></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Admin Modal -->
+    <div id="admin-modal" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-6">
+                <h2 id="admin-modal-title" class="text-2xl font-bold flex items-center gap-2"><i class="fas fa-cog text-yellow-400"></i> แผงควบคุม Admin</h2>
+                <button onclick="toggleAdminPanel()" class="text-slate-400 hover:text-white text-2xl">×</button>
+            </div>
+
+            <!-- Admin Tabs -->
+            <div class="admin-tabs flex gap-2 mb-6 border-b border-white/10 pb-4 overflow-x-auto">
+                <button onclick="switchAdminTab('ai')" class="tab-btn active px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition text-sm" data-tab="ai"><i class="fas fa-robot"></i> AI</button>
+                <button onclick="switchAdminTab('server')" class="tab-btn px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition text-sm" data-tab="server"><i class="fas fa-server"></i> เซิร์ฟเวอร์</button>
+                <button onclick="switchAdminTab('channels')" class="tab-btn px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition text-sm" data-tab="channels"><i class="fas fa-hashtag"></i> ช่องทาง</button>
+                <button onclick="switchAdminTab('design')" class="tab-btn px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition text-sm" data-tab="design"><i class="fas fa-paint-brush"></i> ออกแบบ</button>
+                <button onclick="switchAdminTab('backup')" class="tab-btn px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition text-sm" data-tab="backup"><i class="fas fa-database"></i> สำรอง</button>
+            </div>
+
+            <!-- Tab: AI -->
+            <div id="tab-ai" class="admin-tab-content space-y-6">
+                <!-- AI Providers - Free APIs -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <i class="fas fa-plug text-purple-400"></i> เชื่อมต่อ AI (ฟรี)
+                        <span class="free-badge">ฟรี</span>
+                    </h3>
+                    
+                    <!-- Provider Selection with Free APIs -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                        <div class="bg-white/5 p-3 rounded-xl border border-white/10">
+                            <label class="flex items-center gap-2 text-sm cursor-pointer">
+                                <input type="radio" name="ai-preset" value="gemini" onchange="loadAIPreset('gemini')">
+                                <span>🟠 Google Gemini</span>
+                                <span class="text-xs text-emerald-400">ฟรี</span>
+                            </label>
+                            <p class="text-xs text-slate-500 mt-1">ใช้ API Key จาก Google AI Studio</p>
+                        </div>
+                        <div class="bg-white/5 p-3 rounded-xl border border-white/10">
+                            <label class="flex items-center gap-2 text-sm cursor-pointer">
+                                <input type="radio" name="ai-preset" value="groq" onchange="loadAIPreset('groq')">
+                                <span>⚡ Groq</span>
+                                <span class="text-xs text-emerald-400">ฟรี</span>
+                            </label>
+                            <p class="text-xs text-slate-500 mt-1">ใช้ API Key จาก Groq Console</p>
+                        </div>
+                        <div class="bg-white/5 p-3 rounded-xl border border-white/10">
+                            <label class="flex items-center gap-2 text-sm cursor-pointer">
+                                <input type="radio" name="ai-preset" value="huggingface" onchange="loadAIPreset('huggingface')">
+                                <span>🟡 Hugging Face</span>
+                                <span class="text-xs text-emerald-400">ฟรี</span>
+                            </label>
+                            <p class="text-xs text-slate-500 mt-1">ใช้ API Key จาก Hugging Face</p>
+                        </div>
+                        <div class="bg-white/5 p-3 rounded-xl border border-white/10">
+                            <label class="flex items-center gap-2 text-sm cursor-pointer">
+                                <input type="radio" name="ai-preset" value="cohere" onchange="loadAIPreset('cohere')">
+                                <span>🔴 Cohere</span>
+                                <span class="text-xs text-emerald-400">ฟรี</span>
+                            </label>
+                            <p class="text-xs text-slate-500 mt-1">ใช้ API Key จาก Cohere Dashboard</p>
+                        </div>
+                        <div class="bg-white/5 p-3 rounded-xl border border-white/10">
+                            <label class="flex items-center gap-2 text-sm cursor-pointer">
+                                <input type="radio" name="ai-preset" value="anthropic" onchange="loadAIPreset('anthropic')">
+                                <span>⚫ Claude (Anthropic)</span>
+                                <span class="text-xs text-emerald-400">ฟรี tier</span>
+                            </label>
+                            <p class="text-xs text-slate-500 mt-1">มี free tier สำหรับทดสอบ</p>
+                        </div>
+                        <div class="bg-white/5 p-3 rounded-xl border border-white/10">
+                            <label class="flex items-center gap-2 text-sm cursor-pointer">
+                                <input type="radio" name="ai-preset" value="openai" onchange="loadAIPreset('openai')">
+                                <span>🔵 OpenAI</span>
+                                <span class="text-xs text-yellow-400">มี free trial</span>
+                            </label>
+                            <p class="text-xs text-slate-500 mt-1">ใช้ API Key จาก OpenAI</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex gap-2">
+                            <select id="ai-provider-select" class="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white">
+                                <option value="gemini">🟠 Google Gemini (ฟรี)</option>
+                                <option value="groq">⚡ Groq (ฟรี)</option>
+                                <option value="huggingface">🟡 Hugging Face (ฟรี)</option>
+                                <option value="cohere">🔴 Cohere (ฟรี)</option>
+                                <option value="anthropic">⚫ Claude (ฟรี tier)</option>
+                                <option value="openai">🔵 OpenAI (free trial)</option>
+                                <option value="custom">🔧 Custom API</option>
+                            </select>
+                            <button onclick="loadProviderInfo()" class="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm"><i class="fas fa-info-circle"></i></button>
+                        </div>
+                        <input type="text" id="api-key-input" class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-500" placeholder="API Key (รับฟรีจากผู้ให้บริการ)">
+                        <input type="text" id="api-endpoint-input" class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-500" placeholder="Endpoint (ไม่ต้องแก้ ถ้าใช้ preset)">
+                        <input type="text" id="api-model-input" class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-500" placeholder="Model (z.B. gemini-pro, mixtral-8x7b-32768)">
+                        <div class="flex gap-2">
+                            <button onclick="connectAI()" class="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-lg font-semibold transition"><i class="fas fa-plug"></i> เชื่อมต่อ AI</button>
+                            <button onclick="testAI()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg font-semibold transition"><i class="fas fa-flask"></i> ทดสอบ</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Providers -->
+                <div class="border-t border-white/10 pt-4">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2"><i class="fas fa-list text-blue-400"></i> AI ที่เชื่อมต่อแล้ว</h3>
+                    <div id="active-providers-list" class="space-y-3"><p class="text-slate-400 text-sm">ยังไม่มี AI ที่เชื่อมต่อ</p></div>
+                </div>
+
+                <!-- AI Info -->
+                <div class="border-t border-white/10 pt-4">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2"><i class="fas fa-info-circle text-cyan-400"></i> วิธีขอ API Key ฟรี</h3>
+                    <div class="space-y-2 text-sm text-slate-400">
+                        <div class="bg-white/5 p-3 rounded-xl"><strong class="text-white">🟠 Google Gemini:</strong> ไปที่ <a href="https://ai.google.dev/" target="_blank" class="text-blue-400 hover:underline">ai.google.dev</a> → Get API Key</div>
+                        <div class="bg-white/5 p-3 rounded-xl"><strong class="text-white">⚡ Groq:</strong> ไปที่ <a href="https://console.groq.com/" target="_blank" class="text-blue-400 hover:underline">console.groq.com</a> → สร้าง API Key</div>
+                        <div class="bg-white/5 p-3 rounded-xl"><strong class="text-white">🟡 Hugging Face:</strong> ไปที่ <a href="https://huggingface.co/settings/tokens" target="_blank" class="text-blue-400 hover:underline">huggingface.co/settings/tokens</a></div>
+                        <div class="bg-white/5 p-3 rounded-xl"><strong class="text-white">🔴 Cohere:</strong> ไปที่ <a href="https://dashboard.cohere.com/" target="_blank" class="text-blue-400 hover:underline">dashboard.cohere.com</a> → API Keys</div>
+                        <div class="bg-white/5 p-3 rounded-xl"><strong class="text-white">⚫ Claude:</strong> ไปที่ <a href="https://console.anthropic.com/" target="_blank" class="text-blue-400 hover:underline">console.anthropic.com</a> → Get API Key</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Server -->
+            <div id="tab-server" class="admin-tab-content hidden space-y-6">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4"><i class="fas fa-server text-green-400"></i> สถานะเซิร์ฟเวอร์</h3>
+                    <div class="bg-white/5 p-4 rounded-xl">
+                        <div class="flex justify-between text-sm"><span class="text-slate-400">สถานะ:</span><span class="text-emerald-400">🟢 ออนไลน์</span></div>
+                        <div class="flex justify-between text-sm mt-2"><span class="text-slate-400">ผู้ใช้ทั้งหมด:</span><span class="text-white" id="admin-user-count">0</span></div>
+                        <div class="flex justify-between text-sm mt-2"><span class="text-slate-400">ข้อความ:</span><span class="text-white" id="admin-message-count">0</span></div>
+                        <div class="flex justify-between text-sm mt-2"><span class="text-slate-400">ช่องทาง:</span><span class="text-white" id="admin-channel-count">1</span></div>
+                    </div>
+                </div>
+                <div class="border-t border-white/10 pt-4">
+                    <h3 class="text-lg font-semibold mb-4"><i class="fas fa-sliders-h text-blue-400"></i> ตั้งค่า</h3>
+                    <div class="space-y-3">
+                        <label class="flex items-center gap-3 text-sm"><input type="checkbox" id="server-public" checked class="w-4 h-4 accent-blue-500"> เปิดให้สาธารณะ</label>
+                        <div><label class="text-sm text-slate-400 block mb-1">จำนวนข้อความสูงสุด</label><input type="number" id="max-messages" value="500" class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white"></div>
+                        <button onclick="saveServerSettings()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-semibold transition"><i class="fas fa-save"></i> บันทึก</button>
+                    </div>
+                </div>
+                <div class="border-t border-red-500/20 pt-4"><button onclick="clearAllData()" class="w-full px-4 py-3 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg font-semibold transition border border-red-500/20"><i class="fas fa-database"></i> ล้างข้อมูลทั้งหมด</button></div>
+            </div>
+
+            <!-- Tab: Channels -->
+            <div id="tab-channels" class="admin-tab-content hidden space-y-6">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4"><i class="fas fa-plus-circle text-blue-400"></i> สร้างช่องทาง</h3>
+                    <input type="text" id="channel-name" placeholder="ชื่อช่องทาง" class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white mb-2">
+                    <input type="text" id="channel-icon" placeholder="ไอคอน (emoji)" class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white mb-2">
+                    <button onclick="createChannel()" class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold transition"><i class="fas fa-plus"></i> สร้าง</button>
+                </div>
+                <div class="border-t border-white/10 pt-4">
+                    <h3 class="text-lg font-semibold mb-4"><i class="fas fa-list text-cyan-400"></i> ช่องทางทั้งหมด</h3>
+                    <div id="channels-list" class="space-y-2"><p class="text-slate-400 text-sm">ไม่มีช่องทาง</p></div>
+                </div>
+                <div class="border-t border-white/10 pt-4">
+                    <h3 class="text-lg font-semibold mb-4"><i class="fas fa-video text-red-400"></i> เพิ่มวิดีโอ</h3>
+                    <input type="url" id="video-url" placeholder="URL วิดีโอ" class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white mb-2">
+                    <input type="text" id="video-title" placeholder="ชื่อวิดีโอ" class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white mb-2">
+                    <button onclick="addVideo()" class="w-full px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg font-semibold transition"><i class="fas fa-upload"></i> เพิ่ม</button>
+                </div>
+            </div>
+
+            <!-- Tab: Design -->
+            <div id="tab-design" class="admin-tab-content hidden space-y-6">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4"><i class="fas fa-palette text-pink-400"></i> ปรับแต่ง</h3>
+                    <div class="space-y-3">
+                        <div><label class="text-sm text-slate-400 block mb-1">ชื่อเว็บไซต์</label><input type="text" id="site-title-input" value="Global DNA Chat" class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white"></div>
+                        <div><label class="text-sm text-slate-400 block mb-1">สีหลัก</label><input type="color" id="primary-color" value="#3b82f6" class="w-full h-12 bg-white/5 border border-white/10 rounded-lg cursor-pointer"></div>
+                        <div><label class="text-sm text-slate-400 block mb-1">สีรอง</label><input type="color" id="secondary-color" value="#8b5cf6" class="w-full h-12 bg-white/5 border border-white/10 rounded-lg cursor-pointer"></div>
+                        <div><label class="text-sm text-slate-400 block mb-1">โหมดพื้นหลัง</label>
+                            <select id="background-mode" class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white">
+                                <option value="dark">🌙 มืด</option><option value="light">☀️ สว่าง</option><option value="gradient">🌈 ไล่สี</option>
+                            </select>
+                        </div>
+                        <button onclick="applyTheme()" class="w-full px-4 py-2 bg-pink-600 hover:bg-pink-500 rounded-lg font-semibold transition"><i class="fas fa-check"></i> ใช้ธีม</button>
+                    </div>
+                </div>
+                <div class="border-t border-white/10 pt-4">
+                    <h3 class="text-lg font-semibold mb-4"><i class="fas fa-font text-green-400"></i> ข้อความต้อนรับ</h3>
+                    <textarea id="welcome-message" rows="3" class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-500">🧬 ยินดีต้อนรับสู่ Global DNA Chat! พร้อม AI ผู้ช่วย</textarea>
+                    <button onclick="saveWelcomeMessage()" class="w-full mt-2 px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg font-semibold transition"><i class="fas fa-save"></i> บันทึก</button>
+                </div>
+            </div>
+
+            <!-- Tab: Backup -->
+            <div id="tab-backup" class="admin-tab-content hidden space-y-6">
+                <div><button onclick="exportBackup()" class="w-full px-4 py-3 bg-green-600 hover:bg-green-500 rounded-lg font-semibold transition"><i class="fas fa-download"></i> ดาวน์โหลดข้อมูลสำรอง</button></div>
+                <div class="border-t border-white/10 pt-4">
+                    <h3 class="text-lg font-semibold mb-4"><i class="fas fa-upload text-blue-400"></i> กู้คืนข้อมูล</h3>
+                    <input type="file" id="restore-file" accept=".json" class="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white">
+                    <button onclick="importBackup()" class="w-full mt-2 px-4 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold transition"><i class="fas fa-upload"></i> กู้คืน</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Modal -->
+    <div id="video-modal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="flex items-center justify-between mb-4"><h2 id="video-player-title" class="text-xl font-bold truncate"></h2><button onclick="closeVideoModal()" class="text-slate-400 hover:text-white text-2xl">×</button></div>
+            <div class="relative" style="padding-bottom: 56.25%; height: 0;"><iframe id="video-player" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 1rem; border: 1px solid rgba(255,255,255,0.1);" allowfullscreen allow="autoplay"></iframe></div>
+        </div>
+    </div>
+
+    <!-- Custom HTML Container -->
+    <div id="custom-html-container"></div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full"></div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ============================================================
+            //  DATABASE (LocalStorage)
+            // ============================================================
+            
+            const DB = {
+                KEYS: {
+                    USERS: 'dna_chat_users',
+                    MESSAGES: 'dna_chat_messages',
+                    DEV_MESSAGES: 'dna_chat_dev_messages',
+                    AI_MESSAGES: 'dna_chat_ai_messages',
+                    CHANNELS: 'dna_chat_channels',
+                    AI_PROVIDERS: 'dna_chat_ai_providers',
+                    SETTINGS: 'dna_chat_settings',
+                    THEME: 'dna_chat_theme',
+                    WELCOME: 'dna_chat_welcome'
+                },
+                getUsers() { try { return JSON.parse(localStorage.getItem(this.KEYS.USERS)) || []; } catch { return []; } },
+                saveUsers(u) { localStorage.setItem(this.KEYS.USERS, JSON.stringify(u)); },
+                addUser(username, dna) {
+                    const users = this.getUsers();
+                    if (!users.find(u => u.username === username)) {
+                        users.push({ username, dna, joinedAt: new Date().toISOString(), lastActive: new Date().toISOString(), isOnline: true });
+                        this.saveUsers(users);
+                    }
+                    return users;
+                },
+                updateUserActivity(username) {
+                    const users = this.getUsers();
+                    const user = users.find(u => u.username === username);
+                    if (user) { user.lastActive = new Date().toISOString(); user.isOnline = true; this.saveUsers(users); }
+                },
+                setUserOffline(username) {
+                    const users = this.getUsers();
+                    const user = users.find(u => u.username === username);
+                    if (user) { user.isOnline = false; this.saveUsers(users); }
+                },
+                getOnlineUsers() { return this.getUsers().filter(u => u.isOnline); },
+                getMessages() { try { return JSON.parse(localStorage.getItem(this.KEYS.MESSAGES)) || []; } catch { return []; } },
+                saveMessages(m) { localStorage.setItem(this.KEYS.MESSAGES, JSON.stringify(m)); },
+                addMessage(sender, text, type = 'chat') {
+                    const messages = this.getMessages();
+                    const msg = { id: Date.now() + '_' + Math.random().toString(36).substr(2, 6), sender, text, type, timestamp: new Date().toISOString() };
+                    messages.push(msg);
+                    const max = parseInt(localStorage.getItem('dna_chat_max_messages')) || 500;
+                    if (messages.length > max) messages.splice(0, messages.length - max);
+                    this.saveMessages(messages);
+                    return msg;
+                },
+                clearMessages() { localStorage.removeItem(this.KEYS.MESSAGES); },
+                getDevMessages() { try { return JSON.parse(localStorage.getItem(this.KEYS.DEV_MESSAGES)) || []; } catch { return []; } },
+                saveDevMessages(m) { localStorage.setItem(this.KEYS.DEV_MESSAGES, JSON.stringify(m)); },
+                addDevMessage(sender, text) {
+                    const messages = this.getDevMessages();
+                    const msg = { id: Date.now() + '_' + Math.random().toString(36).substr(2, 6), sender, text, timestamp: new Date().toISOString() };
+                    messages.push(msg);
+                    if (messages.length > 300) messages.splice(0, messages.length - 300);
+                    this.saveDevMessages(messages);
+                    return msg;
+                },
+                getAIMessages() { try { return JSON.parse(localStorage.getItem(this.KEYS.AI_MESSAGES)) || []; } catch { return []; } },
+                saveAIMessages(m) { localStorage.setItem(this.KEYS.AI_MESSAGES, JSON.stringify(m)); },
+                addAIMessage(sender, text, isUser) {
+                    const messages = this.getAIMessages();
+                    const msg = { id: Date.now() + '_' + Math.random().toString(36).substr(2, 6), sender, text, isUser, timestamp: new Date().toISOString() };
+                    messages.push(msg);
+                    if (messages.length > 200) messages.splice(0, messages.length - 200);
+                    this.saveAIMessages(messages);
+                    return msg;
+                },
+                getChannels() { try { return JSON.parse(localStorage.getItem(this.KEYS.CHANNELS)) || []; } catch { return []; } },
+                saveChannels(c) { localStorage.setItem(this.KEYS.CHANNELS, JSON.stringify(c)); },
+                addChannel(name, icon) {
+                    const channels = this.getChannels();
+                    const channel = { id: 'channel_' + Date.now(), name, icon: icon || '📁', createdAt: new Date().toISOString(), messages: [] };
+                    channels.push(channel);
+                    this.saveChannels(channels);
+                    return channel;
+                },
+                getChannelMessages(channelId) {
+                    const channels = this.getChannels();
+                    const channel = channels.find(c => c.id === channelId);
+                    return channel ? channel.messages : [];
+                },
+                addChannelMessage(channelId, sender, text) {
+                    const channels = this.getChannels();
+                    const channel = channels.find(c => c.id === channelId);
+                    if (channel) {
+                        const msg = { id: Date.now() + '_' + Math.random().toString(36).substr(2, 6), sender, text, timestamp: new Date().toISOString() };
+                        channel.messages.push(msg);
+                        if (channel.messages.length > 200) channel.messages.splice(0, channel.messages.length - 200);
+                        this.saveChannels(channels);
+                        return msg;
+                    }
+                    return null;
+                },
+                deleteChannel(channelId) {
+                    let channels = this.getChannels();
+                    channels = channels.filter(c => c.id !== channelId);
+                    this.saveChannels(channels);
+                },
+                getAIProviders() { try { return JSON.parse(localStorage.getItem(this.KEYS.AI_PROVIDERS)) || []; } catch { return []; } },
+                saveAIProviders(p) { localStorage.setItem(this.KEYS.AI_PROVIDERS, JSON.stringify(p)); },
+                addAIProvider(provider) {
+                    const providers = this.getAIProviders();
+                    providers.push(provider);
+                    this.saveAIProviders(providers);
+                    return providers;
+                },
+                removeAIProvider(index) {
+                    const providers = this.getAIProviders();
+                    providers.splice(index, 1);
+                    this.saveAIProviders(providers);
+                    return providers;
+                },
+                getTheme() { try { return JSON.parse(localStorage.getItem(this.KEYS.THEME)) || {}; } catch { return {}; } },
+                saveTheme(t) { localStorage.setItem(this.KEYS.THEME, JSON.stringify(t)); },
+                getWelcomeMessage() { try { return localStorage.getItem(this.KEYS.WELCOME) || '🧬 ยินดีต้อนรับสู่ Global DNA Chat!'; } catch { return '🧬 ยินดีต้อนรับสู่ Global DNA Chat!'; } },
+                saveWelcomeMessage(msg) { localStorage.setItem(this.KEYS.WELCOME, msg); },
+                getSettings() { try { return JSON.parse(localStorage.getItem(this.KEYS.SETTINGS)) || {}; } catch { return {}; } },
+                saveSettings(s) { localStorage.setItem(this.KEYS.SETTINGS, JSON.stringify(s)); },
+                clearAll() { Object.values(this.KEYS).forEach(key => localStorage.removeItem(key)); },
+                exportData() {
+                    const data = {};
+                    Object.keys(this.KEYS).forEach(key => {
+                        const val = localStorage.getItem(this.KEYS[key]);
+                        if (val) data[key] = val;
+                    });
+                    return data;
+                },
+                importData(data) {
+                    Object.keys(data).forEach(key => {
+                        if (this.KEYS[key]) localStorage.setItem(this.KEYS[key], data[key]);
+                    });
+                }
+            };
+
+            // ============================================================
+            //  AI CONFIGURATIONS - FREE APIS
+            // ============================================================
+            
+            const AI_CONFIGS = {
+                gemini: {
+                    name: 'Google Gemini',
+                    icon: '🟠',
+                    endpoint: 'https://generativelanguage.googleapis.com/v1beta/models',
+                    defaultModel: 'gemini-pro',
+                    free: true,
+                    getHeaders: (apiKey) => ({ 'Content-Type': 'application/json' }),
+                    buildUrl: (endpoint, model, apiKey) => `${endpoint}/${model}:generateContent?key=${apiKey}`,
+                    parseResponse: (data) => data.candidates?.[0]?.content?.parts?.[0]?.text || 'ไม่มีการตอบกลับ',
+                    buildBody: (message) => ({ contents: [{ parts: [{ text: message }] }] })
+                },
+                groq: {
+                    name: 'Groq',
+                    icon: '⚡',
+                    endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+                    defaultModel: 'mixtral-8x7b-32768',
+                    free: true,
+                    getHeaders: (apiKey) => ({ 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' }),
+                    buildUrl: (endpoint) => endpoint,
+                    parseResponse: (data) => data.choices?.[0]?.message?.content || 'ไม่มีการตอบกลับ',
+                    buildBody: (message, model) => ({ model, messages: [{ role: 'user', content: message }], max_tokens: 500 })
+                },
+                huggingface: {
+                    name: 'Hugging Face',
+                    icon: '🟡',
+                    endpoint: 'https://api-inference.huggingface.co/models/',
+                    defaultModel: 'meta-llama/Llama-2-7b-chat-hf',
+                    free: true,
+                    getHeaders: (apiKey) => ({ 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' }),
+                    buildUrl: (endpoint, model) => endpoint + model,
+                    parseResponse: (data) => {
+                        if (Array.isArray(data) && data[0]?.generated_text) return data[0].generated_text;
+                        if (data.error) throw new Error(data.error);
+                        return JSON.stringify(data);
+                    },
+                    buildBody: (message) => ({ inputs: message, parameters: { max_new_tokens: 500 } })
+                },
+                cohere: {
+                    name: 'Cohere',
+                    icon: '🔴',
+                    endpoint: 'https://api.cohere.ai/v1/generate',
+                    defaultModel: 'command',
+                    free: true,
+                    getHeaders: (apiKey) => ({ 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' }),
+                    buildUrl: (endpoint) => endpoint,
+                    parseResponse: (data) => data.generations?.[0]?.text || 'ไม่มีการตอบกลับ',
+                    buildBody: (message, model) => ({ model, prompt: message, max_tokens: 500, temperature: 0.7 })
+                },
+                anthropic: {
+                    name: 'Claude (Anthropic)',
+                    icon: '⚫',
+                    endpoint: 'https://api.anthropic.com/v1/messages',
+                    defaultModel: 'claude-3-sonnet-20240229',
+                    free: true,
+                    getHeaders: (apiKey) => ({ 'x-api-key': apiKey, 'Content-Type': 'application/json', 'anthropic-version': '2023-06-01' }),
+                    buildUrl: (endpoint) => endpoint,
+                    parseResponse: (data) => data.content?.[0]?.text || 'ไม่มีการตอบกลับ',
+                    buildBody: (message, model) => ({ model, max_tokens: 500, messages: [{ role: 'user', content: message }] })
+                },
+                openai: {
+                    name: 'OpenAI',
+                    icon: '🔵',
+                    endpoint: 'https://api.openai.com/v1/chat/completions',
+                    defaultModel: 'gpt-3.5-turbo',
+                    free: false,
+                    getHeaders: (apiKey) => ({ 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' }),
+                    buildUrl: (endpoint) => endpoint,
+                    parseResponse: (data) => data.choices?.[0]?.message?.content || 'ไม่มีการตอบกลับ',
+                    buildBody: (message, model) => ({ model, messages: [{ role: 'user', content: message }], max_tokens: 500 })
+                },
+                custom: {
+                    name: 'Custom API',
+                    icon: '🔧',
+                    endpoint: '',
+                    defaultModel: 'custom',
+                    free: false,
+                    getHeaders: (apiKey) => ({ 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' }),
+                    buildUrl: (endpoint) => endpoint,
+                    parseResponse: (data) => data.choices?.[0]?.message?.content || data.result || JSON.stringify(data),
+                    buildBody: (message, model) => ({ model, messages: [{ role: 'user', content: message }] })
+                }
+            };
+
+            // ============================================================
+            //  APPLICATION STATE
+            // ============================================================
+            
+            let currentUser = '';
+            let isAdmin = false;
+            let currentAIProvider = null;
+            let currentAIConfig = null;
+            let syncInterval = null;
+            let userActivityInterval = null;
+            let currentAdminTab = 'ai';
+
+            // ============================================================
+            //  DOM HELPERS
+            // ============================================================
+            
+            const $ = (id) => document.getElementById(id);
+            const chatMessages = $('chat-messages');
+            const devChatMessages = $('dev-chat-messages');
+            const aiChatMessages = $('ai-chat-messages');
+            const messageInput = $('message-input');
+            const devMessageInput = $('dev-message-input');
+            const aiMessageInput = $('ai-message-input');
+
+            function escapeHtml(text) {
+                if (!text) return '';
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            function formatTime(isoString) {
+                try { return new Date(isoString).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }); } catch { return ''; }
+            }
+
+            // ============================================================
+            //  TOAST
+            // ============================================================
+            
+            function showToast(message, type = 'info') {
+                const container = $('toast-container');
+                const colors = { info: 'bg-blue-600', success: 'bg-emerald-600', error: 'bg-red-600', warning: 'bg-yellow-600' };
+                const icons = { info: 'fa-info-circle', success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle' };
+                const toast = document.createElement('div');
+                toast.className = `chat-bubble ${colors[type] || colors.info} text-white px-4 py-3 rounded-xl shadow-lg text-sm flex items-center gap-2 max-w-full`;
+                toast.innerHTML = `<i class="fas ${icons[type] || icons.info} flex-shrink-0"></i> <span class="break-words">${message}</span>`;
+                container.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateX(100%)';
+                    toast.style.transition = 'all 0.3s ease';
+                    setTimeout(() => toast.remove(), 400);
+                }, 5000);
+            }
+
+            // ============================================================
+            //  CAPTCHA
+            // ============================================================
+            
+            window.generateCaptcha = function() {
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                let captcha = '';
+                for (let i = 0; i < 6; i++) captcha += chars.charAt(Math.floor(Math.random() * chars.length));
+                $('captcha-display').textContent = captcha;
+                $('captcha-input').value = '';
+            };
+
+            // ============================================================
+            //  MESSAGE RENDERERS
+            // ============================================================
+            
+            function renderMessage(sender, text, isSelf, timestamp) {
+                const div = document.createElement('div');
+                div.className = `chat-bubble flex w-full ${isSelf ? 'justify-end' : 'justify-start'}`;
+                const colors = isSelf ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-2xl rounded-tr-none shadow-md' : 'bg-white/10 text-slate-100 rounded-2xl rounded-tl-none border border-white/5';
+                div.innerHTML = `
+                    <div class="flex flex-col ${isSelf ? 'items-end' : 'items-start'} max-w-[85%]">
+                        <span class="text-[10px] text-slate-400 mb-0.5 px-1 truncate max-w-full">${escapeHtml(sender)} <span class="message-timestamp">${formatTime(timestamp)}</span></span>
+                        <div class="${colors} px-4 py-2.5 text-sm break-words shadow-sm"><p class="whitespace-pre-wrap">${escapeHtml(text)}</p></div>
+                    </div>
+                `;
+                return div;
+            }
+
+            function addMessage(sender, text, isSelf, timestamp) {
+                chatMessages.appendChild(renderMessage(sender, text, isSelf, timestamp));
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                DB.addMessage(sender, text, 'chat');
+                updateBadge();
+            }
+
+            function addDevMessage(sender, text, isSelf, timestamp) {
+                const div = document.createElement('div');
+                div.className = 'chat-bubble flex flex-col mb-2';
+                const colorClass = isSelf ? 'text-blue-400' : (sender === 'System' ? 'text-amber-400' : 'text-emerald-400');
+                div.innerHTML = `
+                    <div><span class="${colorClass}">[${escapeHtml(sender)}]</span> <span class="text-slate-500 text-xs">${formatTime(timestamp)}</span></div>
+                    <div class="pl-4 mt-0.5 text-slate-200 font-mono-code bg-black/20 p-2 rounded border border-white/5 whitespace-pre-wrap">${escapeHtml(text)}</div>
+                `;
+                devChatMessages.appendChild(div);
+                devChatMessages.scrollTop = devChatMessages.scrollHeight;
+                DB.addDevMessage(sender, text);
+            }
+
+            function addSystemMessage(text) {
+                const div = document.createElement('div');
+                div.className = 'chat-bubble flex justify-center w-full my-2';
+                div.innerHTML = `<div class="bg-white/5 border border-white/10 text-slate-400 text-xs px-4 py-1.5 rounded-full">${text}</div>`;
+                chatMessages.appendChild(div);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            function addAIMessage(sender, text, isUser, timestamp) {
+                const div = document.createElement('div');
+                div.className = `chat-bubble flex w-full ${isUser ? 'justify-end' : 'justify-start'}`;
+                const bgColor = isUser ? 'bg-gradient-to-br from-blue-600 to-blue-700' : 'bg-gradient-to-br from-purple-600 to-pink-600';
+                div.innerHTML = `
+                    <div class="flex flex-col ${isUser ? 'items-end' : 'items-start'} max-w-[85%]">
+                        <span class="text-[10px] text-slate-400 mb-0.5 px-1 truncate max-w-full">${escapeHtml(sender)} <span class="message-timestamp">${formatTime(timestamp)}</span></span>
+                        <div class="${bgColor} text-white rounded-2xl ${isUser ? 'rounded-tr-none' : 'rounded-tl-none shadow-md'} px-4 py-2.5 text-sm break-words"><p class="whitespace-pre-wrap">${escapeHtml(text)}</p></div>
+                    </div>
+                `;
+                aiChatMessages.appendChild(div);
+                aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+                DB.addAIMessage(sender, text, isUser);
+            }
+
+            // ============================================================
+            //  NAVIGATION
+            // ============================================================
+            
+            window.showSection = function(section) {
+                ['chat', 'dev-chat', 'ai-chat', 'users', 'help'].forEach(s => { const el = $(s); if (el) el.classList.add('hidden'); });
+                const target = $(section);
+                if (target) target.classList.remove('hidden');
+                document.querySelectorAll('.menu-btn[data-section]').forEach(btn => btn.classList.toggle('active', btn.dataset.section === section));
+                const menuBar = $('menu-bar');
+                if (menuBar) menuBar.classList.remove('active');
+                if (section === 'users') renderUsersList();
+            };
+
+            window.toggleMenuBar = function() {
+                const menuBar = $('menu-bar');
+                if (menuBar) menuBar.classList.toggle('active');
+            };
+
+            // ============================================================
+            //  USER LIST
+            // ============================================================
+            
+            function renderUsersList() {
+                const users = DB.getUsers();
+                const onlineUsers = users.filter(u => u.isOnline);
+                const container = $('users-list');
+                const totalLabel = $('total-users-label');
+                totalLabel.textContent = `จำนวนผู้ใช้: ${users.length} (ออนไลน์ ${onlineUsers.length})`;
+                if (users.length === 0) {
+                    container.innerHTML = '<p class="text-slate-400 text-sm text-center py-8">ไม่มีผู้ใช้</p>';
+                    return;
+                }
+                container.innerHTML = users.map(user => `
+                    <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5 hover:bg-white/10 transition">
+                        <div class="flex items-center gap-3">
+                            <span class="online-dot ${user.isOnline ? 'online' : 'offline'}"></span>
+                            <div><p class="font-medium text-sm">${escapeHtml(user.username)}</p><p class="text-xs text-slate-500">DNA: ${escapeHtml(user.dna || '---')}</p></div>
+                        </div>
+                        <div class="text-xs text-slate-500 text-right">${user.isOnline ? '🟢 ออนไลน์' : '⚪ ออฟไลน์'}<span class="block text-[10px]">${user.lastActive ? formatTime(user.lastActive) : ''}</span></div>
+                    </div>
+                `).join('');
+            }
+
+            // ============================================================
+            //  BADGE
+            // ============================================================
+            
+            function updateBadge() {
+                const messages = DB.getMessages();
+                const badge = $('chat-badge');
+                if (badge) {
+                    const count = messages.length;
+                    badge.textContent = count > 0 ? count : '0';
+                    badge.style.display = count > 0 ? 'inline' : 'none';
+                }
+            }
+
+            // ============================================================
+            //  LOGIN
+            // ============================================================
+            
+            document.getElementById('dna-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const rawDna = $('dna-input').value.trim().toUpperCase();
+                const captchaInput = $('captcha-input').value.trim();
+                const captchaDisplay = $('captcha-display').textContent;
+                
+                if (!rawDna) { showToast('⚠️ กรุณาใส่รหัส DNA', 'warning'); return; }
+                if (captchaInput !== captchaDisplay) { showToast('❌ รหัสยืนยันไม่ถูกต้อง', 'error'); generateCaptcha(); return; }
+                
+                isAdmin = rawDna === 'ADMIN55';
+                currentUser = isAdmin ? 'ADMIN' : (rawDna.length > 12 ? rawDna.substring(0, 10) + '...' : rawDna);
+                
+                DB.addUser(currentUser, rawDna);
+                DB.updateUserActivity(currentUser);
+                
+                $('login-page').classList.add('hidden');
+                $('app-page').classList.remove('hidden');
+                
+                if (isAdmin) { $('admin-btn').classList.remove('hidden'); showToast('👑 โหมด Admin', 'success'); } 
+                else { showToast(`🧬 ยินดีต้อนรับ ${currentUser}`, 'success'); }
+                
+                $('user-display').innerHTML = `${isAdmin ? '👑 ' : ''}${escapeHtml(currentUser)}`;
+                
+                showSection('chat');
+                addSystemMessage(DB.getWelcomeMessage());
+                addDevMessage('System', `Terminal loaded. Welcome, ${currentUser}.`, false);
+                
+                loadChatHistory();
+                loadDevHistory();
+                loadAIHistory();
+                loadChannels();
+                loadTheme();
+                loadAIProviders();
+                
+                startSync();
+                startUserActivityTracking();
+                updateBadge();
+                updateServerStats();
+            });
+
+            // ============================================================
+            //  LOAD HISTORY
+            // ============================================================
+            
+            function loadChatHistory() {
+                const messages = DB.getMessages();
+                chatMessages.innerHTML = '';
+                messages.slice(-50).forEach(msg => {
+                    chatMessages.appendChild(renderMessage(msg.sender, msg.text, msg.sender === currentUser, msg.timestamp));
+                });
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            function loadDevHistory() {
+                const messages = DB.getDevMessages();
+                devChatMessages.innerHTML = '';
+                messages.slice(-50).forEach(msg => {
+                    const isSelf = msg.sender === currentUser;
+                    const div = document.createElement('div');
+                    div.className = 'chat-bubble flex flex-col mb-2';
+                    const colorClass = isSelf ? 'text-blue-400' : (msg.sender === 'System' ? 'text-amber-400' : 'text-emerald-400');
+                    div.innerHTML = `
+                        <div><span class="${colorClass}">[${escapeHtml(msg.sender)}]</span> <span class="text-slate-500 text-xs">${formatTime(msg.timestamp)}</span></div>
+                        <div class="pl-4 mt-0.5 text-slate-200 font-mono-code bg-black/20 p-2 rounded border border-white/5 whitespace-pre-wrap">${escapeHtml(msg.text)}</div>
+                    `;
+                    devChatMessages.appendChild(div);
+                });
+                devChatMessages.scrollTop = devChatMessages.scrollHeight;
+            }
+
+            function loadAIHistory() {
+                const messages = DB.getAIMessages();
+                aiChatMessages.innerHTML = '';
+                messages.slice(-50).forEach(msg => {
+                    const div = document.createElement('div');
+                    div.className = `chat-bubble flex w-full ${msg.isUser ? 'justify-end' : 'justify-start'}`;
+                    const bgColor = msg.isUser ? 'bg-gradient-to-br from-blue-600 to-blue-700' : 'bg-gradient-to-br from-purple-600 to-pink-600';
+                    div.innerHTML = `
+                        <div class="flex flex-col ${msg.isUser ? 'items-end' : 'items-start'} max-w-[85%]">
+                            <span class="text-[10px] text-slate-400 mb-0.5 px-1 truncate max-w-full">${escapeHtml(msg.sender)} <span class="message-timestamp">${formatTime(msg.timestamp)}</span></span>
+                            <div class="${bgColor} text-white rounded-2xl ${msg.isUser ? 'rounded-tr-none' : 'rounded-tl-none shadow-md'} px-4 py-2.5 text-sm break-words"><p class="whitespace-pre-wrap">${escapeHtml(msg.text)}</p></div>
+                        </div>
+                    `;
+                    aiChatMessages.appendChild(div);
+                });
+                aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+            }
+
+            function loadChannels() {
+                const channels = DB.getChannels();
+                document.querySelectorAll('.menu-btn[data-section^="channel_"]').forEach(btn => btn.remove());
+                document.querySelectorAll('[id^="channel_"]').forEach(el => { if (el.id !== 'channel_messages') el.remove(); });
+                channels.forEach(channel => createChannelUI(channel));
+                updateChannelsList();
+            }
+
+            function createChannelUI(channel) {
+                const menuBar = $('menu-bar');
+                const btn = document.createElement('button');
+                btn.className = 'menu-btn';
+                btn.dataset.section = channel.id;
+                btn.innerHTML = `<span>${channel.icon || '📁'}</span> <span class="hidden md:inline">${escapeHtml(channel.name)}</span>`;
+                btn.onclick = function() { showSection(channel.id); };
+                const lastBtn = menuBar.querySelector('.menu-btn:last-child');
+                if (lastBtn) menuBar.insertBefore(btn, lastBtn);
+                else menuBar.appendChild(btn);
+                
+                const main = document.querySelector('main');
+                const section = document.createElement('div');
+                section.id = channel.id;
+                section.className = 'hidden flex-1 flex-col h-[calc(100vh-120px)]';
+                section.innerHTML = `
+                    <div class="glass rounded-3xl p-4 md:p-6 flex flex-col flex-1 h-full shadow-2xl">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="font-bold text-lg">${channel.icon || '📁'} ${escapeHtml(channel.name)}</h2>
+                            ${isAdmin ? `<button onclick="deleteChannel('${channel.id}')" class="text-xs text-red-400 hover:text-red-300 transition px-2 py-1 rounded-lg hover:bg-red-500/10"><i class="fas fa-trash"></i> ลบ</button>` : ''}
+                        </div>
+                        <div id="${channel.id}-messages" class="flex-1 overflow-y-auto space-y-3 pr-2 mb-4 scrollbar-thin"></div>
+                        <form onsubmit="sendChannelMessage(event, '${channel.id}')" class="flex gap-2 bg-white/5 p-2 rounded-2xl border border-white/10">
+                            <input type="text" class="flex-1 px-4 py-3 bg-transparent rounded-xl focus:outline-none text-sm placeholder-slate-500 text-white" placeholder="พิมพ์ข้อความ..." autocomplete="off">
+                            <button type="submit" class="px-5 bg-blue-600 hover:bg-blue-500 active:scale-95 rounded-xl font-medium text-sm transition flex-shrink-0"><i class="fas fa-paper-plane"></i></button>
+                        </form>
+                    </div>
+                `;
+                main.appendChild(section);
+                
+                const msgs = DB.getChannelMessages(channel.id);
+                const container = $(channel.id + '-messages');
+                if (container) {
+                    container.innerHTML = '';
+                    msgs.forEach(msg => {
+                        const isSelf = msg.sender === currentUser;
+                        const div = document.createElement('div');
+                        div.className = `chat-bubble flex w-full ${isSelf ? 'justify-end' : 'justify-start'}`;
+                        const colors = isSelf ? 'bg-blue-600 text-white rounded-2xl rounded-tr-none' : 'bg-white/10 text-slate-100 rounded-2xl rounded-tl-none border border-white/5';
+                        div.innerHTML = `
+                            <div class="flex flex-col ${isSelf ? 'items-end' : 'items-start'} max-w-[85%]">
+                                <span class="text-[10px] text-slate-400 mb-0.5 px-1">${escapeHtml(msg.sender)} <span class="message-timestamp">${formatTime(msg.timestamp)}</span></span>
+                                <div class="${colors} px-4 py-2.5 text-sm break-words"><p class="whitespace-pre-wrap">${escapeHtml(msg.text)}</p></div>
+                            </div>
+                        `;
+                        container.appendChild(div);
+                    });
+                    container.scrollTop = container.scrollHeight;
+                }
+            }
+
+            // ============================================================
+            //  MESSAGE HANDLERS
+            // ============================================================
+            
+            document.getElementById('message-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const msg = messageInput.value.trim();
+                if (msg) {
+                    const saved = DB.addMessage(currentUser || 'ผู้ใช้', msg, 'chat');
+                    addMessage(currentUser || 'ผู้ใช้', msg, true, saved.timestamp);
+                    messageInput.value = '';
+                    updateBadge();
+                }
+            });
+
+            document.getElementById('dev-message-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const msg = devMessageInput.value.trim();
+                if (msg) {
+                    const saved = DB.addDevMessage(currentUser || 'ผู้ใช้', msg);
+                    addDevMessage(currentUser || 'ผู้ใช้', msg, true, saved.timestamp);
+                    devMessageInput.value = '';
+                }
+            });
+
+            document.getElementById('ai-message-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const question = aiMessageInput.value.trim();
+                if (!question) return;
+                if (!currentAIProvider) {
+                    showToast('❌ กรุณาเชื่อมต่อ AI ใน Admin Panel ก่อน', 'error');
+                    return;
+                }
+                const saved = DB.addAIMessage('คุณ', question, true);
+                addAIMessage('คุณ', question, true, saved.timestamp);
+                aiMessageInput.value = '';
+                callAIAPI(question);
+            });
+
+            window.sendChannelMessage = function(e, channelId) {
+                e.preventDefault();
+                const form = e.target;
+                const input = form.querySelector('input');
+                const msg = input.value.trim();
+                if (!msg) return;
+                const container = $(channelId + '-messages');
+                if (!container) return;
+                const saved = DB.addChannelMessage(channelId, currentUser || 'ผู้ใช้', msg);
+                if (saved) {
+                    const isSelf = saved.sender === currentUser;
+                    const div = document.createElement('div');
+                    div.className = `chat-bubble flex w-full ${isSelf ? 'justify-end' : 'justify-start'}`;
+                    const colors = isSelf ? 'bg-blue-600 text-white rounded-2xl rounded-tr-none' : 'bg-white/10 text-slate-100 rounded-2xl rounded-tl-none border border-white/5';
+                    div.innerHTML = `
+                        <div class="flex flex-col ${isSelf ? 'items-end' : 'items-start'} max-w-[85%]">
+                            <span class="text-[10px] text-slate-400 mb-0.5 px-1">${escapeHtml(saved.sender)} <span class="message-timestamp">${formatTime(saved.timestamp)}</span></span>
+                            <div class="${colors} px-4 py-2.5 text-sm break-words"><p class="whitespace-pre-wrap">${escapeHtml(saved.text)}</p></div>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                    container.scrollTop = container.scrollHeight;
+                }
+                input.value = '';
+            };
+
+            // ============================================================
+            //  AI API - FREE PROVIDERS
+            // ============================================================
+            
+            async function callAIAPI(question) {
+                const typingId = 'ai-typing-' + Date.now();
+                const typingDiv = document.createElement('div');
+                typingDiv.id = typingId;
+                typingDiv.className = 'flex justify-start text-xs text-slate-400 italic animate-pulse px-2 py-1';
+                typingDiv.textContent = `${currentAIConfig?.icon || '🤖'} ${currentAIConfig?.name || 'AI'} กำลังประมวลผล...`;
+                aiChatMessages.appendChild(typingDiv);
+                aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+
+                try {
+                    const response = await queryAI(question, currentAIProvider, currentAIConfig);
+                    const typingEl = $(typingId);
+                    if (typingEl) typingEl.remove();
+                    const saved = DB.addAIMessage('AI ผู้ช่วย', response, false);
+                    addAIMessage('AI ผู้ช่วย', response, false, saved.timestamp);
+                } catch (error) {
+                    const typingEl = $(typingId);
+                    if (typingEl) typingEl.remove();
+                    showToast(`❌ AI Error: ${error.message}`, 'error');
+                    const saved = DB.addAIMessage('AI ผู้ช่วย', `❌ เกิดข้อผิดพลาด: ${error.message}`, false);
+                    addAIMessage('AI ผู้ช่วย', `❌ เกิดข้อผิดพลาด: ${error.message}`, false, saved.timestamp);
+                }
+            }
+
+            async function queryAI(message, provider, config) {
+                if (!config) throw new Error('ไม่พบการกำหนดค่า AI');
+                
+                const headers = config.getHeaders(provider.apiKey);
+                const url = config.buildUrl(config.endpoint, provider.model, provider.apiKey);
+                const body = config.buildBody(message, provider.model);
+                
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(body)
+                });
+                
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    throw new Error(`${config.name} API error: ${res.status} - ${errorText}`);
+                }
+                
+                const data = await res.json();
+                return config.parseResponse(data);
+            }
+
+            // ============================================================
+            //  AI PROVIDER MANAGEMENT
+            // ============================================================
+            
+            function loadAIProviders() {
+                const providers = DB.getAIProviders();
+                if (providers.length > 0) {
+                    currentAIProvider = providers[0];
+                    const config = AI_CONFIGS[currentAIProvider.provider];
+                    if (config) {
+                        currentAIConfig = config;
+                        $('ai-provider-status').textContent = `กำลังใช้: ${config.icon} ${config.name}`;
+                        $('ai-model-badge').textContent = `🤖 ${currentAIProvider.model}`;
+                    }
+                }
+                updateProvidersList();
+            }
+
+            window.loadAIPreset = function(provider) {
+                const config = AI_CONFIGS[provider];
+                if (!config) return;
+                $('ai-provider-select').value = provider;
+                $('api-endpoint-input').value = config.endpoint;
+                $('api-model-input').value = config.defaultModel;
+                $('api-key-input').placeholder = `🔑 ใส่ API Key สำหรับ ${config.name}`;
+                showToast(`📋 โหลดข้อมูลของ ${config.icon} ${config.name}`, 'info');
+            };
+
+            window.loadProviderInfo = function() {
+                const provider = $('ai-provider-select').value;
+                const config = AI_CONFIGS[provider];
+                if (!config) return;
+                showToast(`${config.icon} ${config.name}${config.free ? ' 🆓 ฟรี!' : ''}`, 'info');
+            };
+
+            window.connectAI = function() {
+                const provider = $('ai-provider-select').value;
+                const apiKey = $('api-key-input').value.trim();
+                const endpoint = $('api-endpoint-input').value.trim();
+                const model = $('api-model-input').value.trim();
+
+                if (!provider) { showToast('❌ กรุณาเลือก Provider', 'error'); return; }
+                if (!apiKey) { showToast('❌ กรุณาใส่ API Key', 'error'); return; }
+
+                const config = AI_CONFIGS[provider];
+                if (!config) { showToast('❌ Provider ไม่ถูกต้อง', 'error'); return; }
+
+                const newProvider = {
+                    provider: provider,
+                    apiKey: apiKey,
+                    endpoint: endpoint || config.endpoint,
+                    model: model || config.defaultModel
+                };
+
+                DB.addAIProvider(newProvider);
+                currentAIProvider = newProvider;
+                currentAIConfig = config;
+                
+                updateProvidersList();
+                $('ai-provider-status').textContent = `กำลังใช้: ${config.icon} ${config.name}`;
+                $('ai-model-badge').textContent = `🤖 ${newProvider.model}`;
+                
+                showToast(`✅ เชื่อมต่อ ${config.icon} ${config.name} เรียบร้อย!${config.free ? ' 🆓' : ''}`, 'success');
+                
+                // Clear form
+                $('api-key-input').value = '';
+                $('api-endpoint-input').value = '';
+                $('api-model-input').value = '';
+            };
+
+            window.testAI = function() {
+                if (!currentAIProvider || !currentAIConfig) {
+                    showToast('❌ กรุณาเชื่อมต่อ AI ก่อน', 'warning');
+                    return;
+                }
+                showToast('🧪 กำลังทดสอบ AI...', 'info');
+                const testMsg = 'สวัสดีครับ/ค่ะ ทดสอบการเชื่อมต่อ AI';
+                callAIAPI(testMsg);
+            };
+
+            function updateProvidersList() {
+                const providers = DB.getAIProviders();
+                const list = $('active-providers-list');
+                if (providers.length === 0) {
+                    list.innerHTML = '<p class="text-slate-400 text-sm">ยังไม่มี AI ที่เชื่อมต่อ</p>';
+                    return;
+                }
+                list.innerHTML = providers.map((p, i) => {
+                    const config = AI_CONFIGS[p.provider] || { name: p.provider, icon: '🔧' };
+                    return `
+                    <div class="api-card">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="api-status ${i === 0 ? 'active' : 'inactive'}"></span>
+                                <div class="min-w-0">
+                                    <p class="font-semibold truncate">${config.icon} ${escapeHtml(config.name)} ${config.free ? '🆓' : ''}</p>
+                                    <p class="text-xs text-slate-400 truncate">${escapeHtml(p.model)}</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-1">
+                                <button onclick="setActiveProvider(${i})" class="px-2 py-1 text-xs bg-emerald-500/20 text-emerald-400 rounded hover:bg-emerald-500/30" title="ใช้เป็นหลัก"><i class="fas fa-check"></i></button>
+                                <button onclick="removeProvider(${i})" class="px-2 py-1 text-xs bg-red-500/20 text-red-400 rounded hover:bg-red-500/30"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `}).join('');
+            }
+
+            window.setActiveProvider = function(index) {
+                const providers = DB.getAIProviders();
+                if (index >= 0 && index < providers.length) {
+                    currentAIProvider = providers[index];
+                    const config = AI_CONFIGS[currentAIProvider.provider];
+                    if (config) {
+                        currentAIConfig = config;
+                        $('ai-provider-status').textContent = `กำลังใช้: ${config.icon} ${config.name}`;
+                        $('ai-model-badge').textContent = `🤖 ${currentAIProvider.model}`;
+                        showToast(`✅ เปลี่ยนเป็น ${config.icon} ${config.name}`, 'success');
+                    }
+                    updateProvidersList();
+                }
+            };
+
+            window.removeProvider = function(index) {
+                DB.removeAIProvider(index);
+                const providers = DB.getAIProviders();
+                if (providers.length > 0) {
+                    currentAIProvider = providers[0];
+                    const config = AI_CONFIGS[currentAIProvider.provider];
+                    if (config) currentAIConfig = config;
+                } else {
+                    currentAIProvider = null;
+                    currentAIConfig = null;
+                    $('ai-provider-status').textContent = 'เลือก AI Provider ใน Admin';
+                    $('ai-model-badge').textContent = '⚡ รอการเชื่อมต่อ';
+                }
+                updateProvidersList();
+                showToast('🗑️ ลบ AI เรียบร้อย', 'info');
+            };
+
+            // ============================================================
+            //  ADMIN FUNCTIONS
+            // ============================================================
+            
+            window.toggleAdminPanel = function() {
+                const modal = $('admin-modal');
+                modal.classList.toggle('active');
+                if (modal.classList.contains('active')) {
+                    updateServerStats();
+                    updateProvidersList();
+                    updateChannelsList();
+                    loadThemeToEditor();
+                }
+            };
+
+            window.switchAdminTab = function(tab) {
+                currentAdminTab = tab;
+                document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+                const tabContent = $('tab-' + tab);
+                if (tabContent) tabContent.classList.remove('hidden');
+                const tabBtn = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
+                if (tabBtn) tabBtn.classList.add('active');
+            };
+
+            // ---- Channels ----
+            window.createChannel = function() {
+                const name = $('channel-name').value.trim();
+                const icon = $('channel-icon').value.trim() || '📁';
+                if (!name) { showToast('❌ กรุณาใส่ชื่อช่องทาง', 'warning'); return; }
+                const channel = DB.addChannel(name, icon);
+                createChannelUI(channel);
+                updateChannelsList();
+                showToast(`✅ สร้างช่องทาง "${name}" เรียบร้อย!`, 'success');
+                $('channel-name').value = '';
+                $('channel-icon').value = '';
+            };
+
+            window.deleteChannel = function(channelId) {
+                if (!confirm('ต้องการลบช่องทางนี้ใช่หรือไม่?')) return;
+                DB.deleteChannel(channelId);
+                document.querySelector(`.menu-btn[data-section="${channelId}"]`)?.remove();
+                const section = $(channelId);
+                if (section) section.remove();
+                updateChannelsList();
+                showToast('🗑️ ลบช่องทางเรียบร้อย', 'info');
+                showSection('chat');
+            };
+
+            function updateChannelsList() {
+                const channels = DB.getChannels();
+                const list = $('channels-list');
+                if (channels.length === 0) {
+                    list.innerHTML = '<p class="text-slate-400 text-sm">ไม่มีช่องทาง</p>';
+                    return;
+                }
+                list.innerHTML = channels.map(ch => `
+                    <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                        <span>${ch.icon || '📁'} ${escapeHtml(ch.name)}</span>
+                        <span class="text-xs text-slate-500">${ch.messages?.length || 0} ข้อความ</span>
+                    </div>
+                `).join('');
+            }
+
+            // ---- Video ----
+            window.addVideo = function() {
+                const url = $('video-url').value.trim();
+                const title = $('video-title').value.trim();
+                if (!url) { showToast('❌ กรุณาใส่ URL', 'warning'); return; }
+                if (!title) { showToast('❌ กรุณาใส่ชื่อ', 'warning'); return; }
+                addSystemMessage(`🎬 <strong onclick="playVideo('${escapeHtml(url)}', '${escapeHtml(title)}')" class="cursor-pointer text-blue-400 hover:underline">${escapeHtml(title)}</strong> อัปโหลดแล้ว!`);
+                $('video-url').value = '';
+                $('video-title').value = '';
+                showToast('✅ เพิ่มวิดีโอเรียบร้อย!', 'success');
+            };
+
+            window.playVideo = function(url, title) {
+                let embedUrl = url;
+                try {
+                    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                        const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+                        if (match) embedUrl = `https://www.youtube.com/embed/${match[1]}`;
+                    } else if (url.includes('vimeo.com')) {
+                        const match = url.match(/vimeo\.com\/(\d+)/);
+                        if (match) embedUrl = `https://player.vimeo.com/video/${match[1]}`;
+                    }
+                } catch (e) { showToast('❌ ไม่สามารถเล่นวิดีโอ', 'error'); return; }
+                $('video-player-title').textContent = title;
+                $('video-player').src = embedUrl;
+                $('video-modal').classList.add('active');
+            };
+
+            window.closeVideoModal = function() {
+                $('video-modal').classList.remove('active');
+                $('video-player').src = '';
+            };
+
+            // ---- Theme ----
+            function loadTheme() {
+                const theme = DB.getTheme();
+                if (theme.siteTitle) { const t = $('site-title'); if (t) t.textContent = theme.siteTitle; }
+                if (theme.background) document.body.style.background = theme.background;
+            }
+
+            function loadThemeToEditor() {
+                const theme = DB.getTheme();
+                $('site-title-input').value = theme.siteTitle || 'Global DNA Chat';
+                $('primary-color').value = theme.primaryColor || '#3b82f6';
+                $('secondary-color').value = theme.secondaryColor || '#8b5cf6';
+                $('background-mode').value = theme.mode || 'dark';
+                $('welcome-message').value = DB.getWelcomeMessage();
+            }
+
+            window.applyTheme = function() {
+                const title = $('site-title-input').value.trim() || 'Global DNA Chat';
+                const primary = $('primary-color').value;
+                const secondary = $('secondary-color').value;
+                const mode = $('background-mode').value;
+                const theme = { siteTitle: title, primaryColor: primary, secondaryColor: secondary, mode: mode };
+                const titleEl = $('site-title');
+                if (titleEl) titleEl.textContent = title;
+                let bg = mode === 'dark' ? 'linear-gradient(135deg, #0f172a 0%, #1e2937 100%)' :
+                         mode === 'light' ? 'linear-gradient(135deg, #f0f4ff 0%, #e8edf5 100%)' :
+                         `linear-gradient(135deg, ${primary}33 0%, ${secondary}33 100%)`;
+                document.body.style.background = bg;
+                DB.saveTheme(theme);
+                showToast('✅ ใช้ธีมเรียบร้อย!', 'success');
+            };
+
+            window.saveWelcomeMessage = function() {
+                const msg = $('welcome-message').value.trim();
+                if (!msg) { showToast('❌ กรุณาใส่ข้อความ', 'warning'); return; }
+                DB.saveWelcomeMessage(msg);
+                showToast('✅ บันทึกข้อความต้อนรับ!', 'success');
+            };
+
+            // ---- Server ----
+            window.saveServerSettings = function() {
+                const max = parseInt($('max-messages').value) || 500;
+                localStorage.setItem('dna_chat_max_messages', String(max));
+                showToast('✅ บันทึกการตั้งค่า!', 'success');
+            };
+
+            // ---- Stats ----
+            function updateServerStats() {
+                const users = DB.getUsers();
+                const messages = DB.getMessages();
+                const channels = DB.getChannels();
+                const userCount = $('admin-user-count');
+                if (userCount) userCount.textContent = users.length;
+                const msgCount = $('admin-message-count');
+                if (msgCount) msgCount.textContent = messages.length;
+                const channelCount = $('admin-channel-count');
+                if (channelCount) channelCount.textContent = channels.length + 1;
+            }
+
+            // ---- Backup ----
+            window.exportBackup = function() {
+                const data = DB.exportData();
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `dna_chat_backup_${new Date().toISOString().slice(0,10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('📦 ดาวน์โหลดสำรองเรียบร้อย!', 'success');
+            };
+
+            window.importBackup = function() {
+                const file = $('restore-file').files[0];
+                if (!file) { showToast('❌ กรุณาเลือกไฟล์', 'warning'); return; }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (!confirm('กู้คืนจะแทนที่ข้อมูลทั้งหมด ดำเนินการต่อ?')) return;
+                        DB.importData(data);
+                        showToast('✅ กู้คืนเรียบร้อย! รีเฟรชหน้า', 'success');
+                        setTimeout(() => location.reload(), 2000);
+                    } catch(err) { showToast('❌ ไฟล์ไม่ถูกต้อง: ' + err.message, 'error'); }
+                };
+                reader.readAsText(file);
+            };
+
+            // ---- Clear ----
+            window.clearAllData = function() {
+                if (!confirm('⚠️ ล้างข้อมูลทั้งหมด? ไม่สามารถย้อนกลับ!')) return;
+                if (!confirm('ยืนยันอีกครั้ง?')) return;
+                DB.clearAll();
+                showToast('🗑️ ล้างข้อมูลเรียบร้อย!', 'info');
+                setTimeout(() => location.reload(), 1500);
+            };
+
+            window.clearChatHistory = function() {
+                if (!confirm('ล้างประวัติแชท?')) return;
+                DB.clearMessages();
+                chatMessages.innerHTML = '';
+                addSystemMessage('🗑️ ล้างประวัติข้อความเรียบร้อย');
+                updateBadge();
+                showToast('🗑️ ล้างประวัติข้อความ', 'info');
+            };
+
+            // ============================================================
+            //  SYNC
+            // ============================================================
+            
+            function startSync() {
+                if (syncInterval) clearInterval(syncInterval);
+                syncInterval = setInterval(() => {
+                    const onlineUsers = DB.getOnlineUsers();
+                    const count = $('user-count');
+                    if (count) count.textContent = `ผู้ใช้ออนไลน์: ${onlineUsers.length}`;
+                    const onlineCount = $('online-count');
+                    if (onlineCount) onlineCount.textContent = onlineUsers.length;
+                    updateServerStats();
+                }, 5000);
+            }
+
+            function startUserActivityTracking() {
+                if (userActivityInterval) clearInterval(userActivityInterval);
+                userActivityInterval = setInterval(() => {
+                    if (currentUser) DB.updateUserActivity(currentUser);
+                }, 30000);
+            }
+
+            // ============================================================
+            //  LOGOUT
+            // ============================================================
+            
+            window.logout = function() {
+                if (currentUser) DB.setUserOffline(currentUser);
+                currentUser = '';
+                isAdmin = false;
+                if (syncInterval) clearInterval(syncInterval);
+                if (userActivityInterval) clearInterval(userActivityInterval);
+                $('dna-input').value = '';
+                $('captcha-input').value = '';
+                generateCaptcha();
+                $('login-page').classList.remove('hidden');
+                $('app-page').classList.add('hidden');
+                $('admin-btn').classList.add('hidden');
+                $('chat-messages').innerHTML = '';
+                $('dev-chat-messages').innerHTML = '';
+                $('ai-chat-messages').innerHTML = '';
+                showToast('👋 ออกจากระบบเรียบร้อย', 'info');
+            };
+
+            // ============================================================
+            //  MODAL CLOSE
+            // ============================================================
+            
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        this.classList.remove('active');
+                        const videoPlayer = $('video-player');
+                        if (videoPlayer) videoPlayer.src = '';
+                    }
+                });
+            });
+
+            // ============================================================
+            //  INIT
+            // ============================================================
+            
+            generateCaptcha();
+            loadTheme();
+            loadAIProviders();
+            $('welcome-message').value = DB.getWelcomeMessage();
+            
+            console.log('🧬 Global DNA Chat with FREE AI APIs initialized!');
+            console.log('📋 Supported FREE AI: Gemini, Groq, Hugging Face, Cohere, Claude');
+            console.log('👑 Admin: ADMIN55');
+        })();
+    </script>
+</body>
+</html>
